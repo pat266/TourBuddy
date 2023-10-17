@@ -22,11 +22,15 @@ expo login
 Clone to a folder.
 
 ```
-git clone --branch ProfileCreation https://github.com/pat266/TourBuddy.git
+git clone https://github.com/pat266/TourBuddy.git
 ```
 cd into folder
 ```
 cd TourBuddy
+```
+Check out the branch you prefer
+```
+git checkout <branch>
 ```
 Install dependencies
 ```
