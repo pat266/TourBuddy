@@ -1,26 +1,42 @@
-import { StatusBar } from 'expo-status-bar';
+import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-
-
+import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
 import RegistrationForm from './app/components/RegistrationForm';
 
+const Stack = createStackNavigator();
+
+const navTheme = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    background: 'transparent',
+  },
+};
 
 export default function App() {
   return (
-    <View style={styles.container}>
+    <NavigationContainer>
+      <Stack.Navigator
+        theme={navTheme}
+        screenOptions={{
+          headerShown: false,
+        }}
+        style={styles.container} // Set background color here
+      >
+        
+        <Stack.Screen name="Start Registration" component={RegistrationForm} />
 
 
-      <RegistrationForm />
-    </View>
+
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    paddingLeft: 50,
-    paddingRight: 50,
-    backgroundColor: 'lightblue',
+    backgroundColor: 'lightblue', // Set the background color here
   },
 });

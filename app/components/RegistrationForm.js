@@ -1,7 +1,5 @@
-import { StatusBar } from 'expo-status-bar';
 import React from 'react';
 import { StyleSheet, Text, View, TextInput, TouchableOpacity } from 'react-native';
-
 
 export default class RegistrationForm extends React.Component {
   render() {
@@ -9,64 +7,68 @@ export default class RegistrationForm extends React.Component {
       <View style={styles.RegistrationForm}>
         <Text style={styles.Header}>Register Your Account</Text>
 
-        <TextInput style={styles.input} placeholder='Name' underlineColorAndroid={'transparent'}   />
+        <TextInput
+          style={styles.input}
+          placeholder='Name'
+          underlineColorAndroid={'transparent'}
+        />
 
-        <TextInput style={styles.input} placeholder='Email' underlineColorAndroid={'transparent'}   />
+        <TextInput
+          style={styles.input}
+          placeholder='Email'
+          underlineColorAndroid={'transparent'}
+        />
 
-        <TextInput style={styles.input} placeholder='Password' secureTextEntry={true} underlineColorAndroid={'transparent'}   />
+        <TextInput
+          style={styles.input}
+          placeholder='Password'
+          secureTextEntry={true}
+          underlineColorAndroid={'transparent'}
+        />
 
-        <TouchableOpacity style={styles.submit}>
+        <TouchableOpacity style={styles.submit} onPress={() => this.props.navigation.navigate('NextScreen')}>
           <Text style={styles.submitText} allowFontScaling={true}>Next</Text>
         </TouchableOpacity>
-
-
-
-
       </View>
     );
-  
   }
 }
 
 const styles = StyleSheet.create({
   RegistrationForm: {
-    
+    flex: 1,
+    paddingTop: 50,
+    backgroundColor: 'lightblue',
+    padding: 20, 
   },
-
   Header: {
     fontSize: 24,
-    color: "black",
-    paddingBottom: 10,
+    color: 'black',
+    paddingBottom: 20,
     paddingTop: 20,
-    borderBottomColor: "grey",
+    borderBottomColor: 'grey',
     borderBottomWidth: 1,
   },
-
-
   input: {
     alignSelf: 'stretch',
     height: 40,
     marginBottom: 30,
-    color: "#fff",
+    color: '#fff',
     borderBottomColor: 'grey',
     borderBottomWidth: 1,
+    padding: 10, 
   },
-
-
   submit: {
-    alignSelf: 'stretch',
+    alignSelf: 'auto',
     alignItems: 'center',
-    padding: 20,
     backgroundColor: 'lightgrey',
     marginTop: 30,
     borderRadius: 10,
+    padding: 10,
     width: '40%',
-    height: ''
   },
-
-
   submitText: {
-    fontWeight: 'bold'
+    fontWeight: 'bold',
+    fontSize: 18,
   },
-
 });
