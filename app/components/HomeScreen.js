@@ -8,24 +8,6 @@ export default class RegistrationForm extends React.Component {
       <View style={styles.RegistrationForm}>
         <Text style={styles.Header}>Successfully Logged In!</Text>
 
-        <TextInput
-          style={styles.input}
-          placeholder='Name'
-          underlineColorAndroid={'transparent'}
-        />
-
-        <TextInput
-          style={styles.input}
-          placeholder='Email'
-          underlineColorAndroid={'transparent'}
-        />
-
-        <TextInput
-          style={styles.input}
-          placeholder='Password'
-          secureTextEntry={true}
-          underlineColorAndroid={'transparent'}
-        />
 
         <TouchableOpacity style={styles.submit} onPress={() => this.props.navigation.navigate('Registration_Beginning')}>
           <Text style={styles.submitText} allowFontScaling={true}>Next</Text>

@@ -1,5 +1,6 @@
 import React from 'react';
-import { StyleSheet, Text, View, TextInput, TouchableOpacity } from 'react-native';
+import {Text, View, TextInput, TouchableOpacity, CheckBox} from 'react-native';
+
 import styles from './Style';
 
 export default class RegistrationForm extends React.Component {
