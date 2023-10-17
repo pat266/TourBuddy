@@ -6,7 +6,18 @@ This uses React Native and Expo.
 
 https://reactnative.dev/docs/environment-setup
 
+https://docs.expo.dev/get-started/installation/
 
+
+
+Download the Expo Go app on the IPhone and Android 
+
+I recommend to create an expo account and login in your terminal.
+https://expo.dev/signup
+
+```
+expo login
+```
 
 Clone to a folder.
 
@@ -21,7 +32,7 @@ Install dependencies
 ```
 npm install
 ```
-if  above doesnt work
+if  the above doesn't work
 ```
 yarn install
 ```
