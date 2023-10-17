@@ -1,6 +1,13 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
-export default StyleSheet.create({
+export const StackNavigatorStyles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: 'lightblue', 
+    },
+});
+
+export const RegistrationFormStyles = StyleSheet.create({
     RegistrationForm: {
       flex: 1,
       paddingTop: 50,
@@ -38,4 +45,3 @@ export default StyleSheet.create({
       fontSize: 18,
     },
   });
-  
