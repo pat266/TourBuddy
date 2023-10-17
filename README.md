@@ -8,7 +8,7 @@ https://reactnative.dev/docs/environment-setup
 
 https://docs.expo.dev/get-started/installation/
 
-
+WARNING: On Windows NPM gets locked by some IDE's. Closing IDE or WSL session will potentially remove npm permissions conflict.
 
 Download the Expo Go app on the IPhone and Android 
 
@@ -22,7 +22,7 @@ expo login
 Clone to a folder.
 
 ```
-git clone --branch ProfileCreation https://github.com/pat266/TourBuddy.git TourBuddy
+git clone --branch ProfileCreation https://github.com/pat266/TourBuddy.git
 ```
 cd into folder
 ```
