@@ -2,7 +2,7 @@ import React from 'react';
 import { Provider } from 'react-native-paper';
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { Login, RegistrationForm, Interests, HomeScreen } from './src/views';
+import { Login, RegistrationForm, Interests, HomeScreen, NearbyPlaces } from './src/views';
 import { theme } from './src/core/theme'
 import { StackNavigatorStyles } from './src/core/styles'
 
@@ -23,6 +23,7 @@ export default function App() {
           <Stack.Screen name="RegistrationForm" component={RegistrationForm} />
           <Stack.Screen name="Interests" component={Interests}/>
           <Stack.Screen name="HomeScreen" component={HomeScreen}/>
+          <Stack.Screen name="NearbyPlaces" component={NearbyPlaces}/>
 
 
         </Stack.Navigator>

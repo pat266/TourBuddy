@@ -1,7 +1,8 @@
 import React, { Component } from 'react';
 import { View, Text } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
-import Geolocation from '@react-native-community/geolocation';
+import { Location } from 'expo';
+import { Permissions } from 'expo-permissions';
 import axios from 'axios';
 import { GOOGLE_MAPS_API_KEY } from "@env";
 
@@ -16,23 +17,27 @@ export default class NearbyPlaces extends Component {
   }
 
   componentDidMount() {
-    Geolocation.getCurrentPosition(
-      position => {
-        const { latitude, longitude } = position.coords;
-        this.setState({
-          region: {
-            latitude,
-            longitude,
-            latitudeDelta: 0.01,
-            longitudeDelta: 0.01,
-          },
-        });
-        this.getNearbyPlaces(latitude, longitude);
-      },
-      error => console.log(error),
-      { enableHighAccuracy: true, timeout: 20000, maximumAge: 1000 }
-    );
+    this.getLocationAsync();
   }
+
+  getLocationAsync = async () => {
+    const { status } = await Permissions.askAsync(Permissions.LOCATION);
+    if (status !== 'granted') {
+      console.log('Permission to access location was denied');
+      return;
+    }
+    const location = await Location.getCurrentPositionAsync({});
+    const { latitude, longitude } = location.coords;
+    this.setState({
+      region: {
+        latitude,
+        longitude,
+        latitudeDelta: 0.01,
+        longitudeDelta: 0.01,
+      },
+    });
+    this.getNearbyPlaces(latitude, longitude);
+  };
 
   getNearbyPlaces = async (latitude, longitude) => {
     const { etaFilter } = this.state;
