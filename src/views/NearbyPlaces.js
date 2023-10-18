@@ -36,10 +36,10 @@ export default class NearbyPlaces extends Component {
   componentDidMount() {
     Alert.alert(
       'Location Permission',
-      'We need access to your location to show nearby places.',
+      'Do you consent to share your information?',
       [
-        { text: 'OK', onPress: this.getLocationAsync },
-        { text: 'Cancel', onPress: () => console.log('Permission denied'), style: 'cancel' },
+        { text: 'Yes', onPress: this.getLocationAsync },
+        { text: 'No', onPress: () => console.log('Permission denied'), style: 'cancel' },
       ],
     );
   }
