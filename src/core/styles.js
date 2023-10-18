@@ -1,4 +1,5 @@
 import { StyleSheet, Text, View } from 'react-native';
+import { theme } from '../core/theme'
 
 export const StackNavigatorStyles = StyleSheet.create({
     container: {
@@ -6,6 +7,28 @@ export const StackNavigatorStyles = StyleSheet.create({
         backgroundColor: 'lightblue', 
     },
 });
+
+
+export const loginStyles = StyleSheet.create({
+  forgotPassword: {
+    width: '100%',
+    alignItems: 'flex-end',
+    marginBottom: 10,
+  },
+  row: {
+    flexDirection: 'row',
+    marginTop: 4,
+  },
+  forgot: {
+    fontSize: 13,
+    color: theme.colors.secondary,
+  },
+  link: {
+    fontWeight: 'bold',
+    color: theme.colors.primary,
+  },
+})
+
 
 export const RegistrationFormStyles = StyleSheet.create({
     RegistrationForm: {
@@ -45,3 +68,4 @@ export const RegistrationFormStyles = StyleSheet.create({
       fontSize: 18,
     },
   });
+

@@ -1,33 +1,41 @@
-import React from 'react';
-import { Provider } from 'react-native-paper';
-import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
-import { Login, RegistrationForm, Interests, HomeScreen, NearbyPlaces } from './src/views';
+import React from 'react'
+import { Provider } from 'react-native-paper'
+import { NavigationContainer } from '@react-navigation/native'
+import { createStackNavigator } from '@react-navigation/stack'
 import { theme } from './src/core/theme'
-import { StackNavigatorStyles } from './src/core/styles'
+import {
+  HomeScreen,
+  NearbyPlaces,
+  Login,
+  Interests,
+  RegistrationForm,
+  ResetPasswordScreen,
+} from './src/views'
 
-const Stack = createStackNavigator();
+
+const Stack = createStackNavigator()
 
 export default function App() {
   return (
     <Provider theme={theme}>
       <NavigationContainer>
         <Stack.Navigator
-          initialRouteName='Login'
+          initialRouteName="Login"
           screenOptions={{
             headerShown: false,
           }}
-          style={StackNavigatorStyles.container} // Set background color here
         >
+          <Stack.Screen name="HomeScreen" component={HomeScreen} />
           <Stack.Screen name="Login" component={Login} />
           <Stack.Screen name="RegistrationForm" component={RegistrationForm} />
-          <Stack.Screen name="Interests" component={Interests}/>
-          <Stack.Screen name="HomeScreen" component={HomeScreen}/>
-          <Stack.Screen name="NearbyPlaces" component={NearbyPlaces}/>
-
-
+          <Stack.Screen name="Interests" component={Interests} />
+          <Stack.Screen name="NearbyPlaces" component={NearbyPlaces} />
+          <Stack.Screen
+            name="ResetPasswordScreen"
+            component={ResetPasswordScreen}
+          />
         </Stack.Navigator>
       </NavigationContainer>
     </Provider>
-  );
+  )
 }
