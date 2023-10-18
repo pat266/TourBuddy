@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "SSCS0",
-    "slug": "SSCS0",
+    "name": "TourBuddy",
+    "slug": "TourBuddy",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",

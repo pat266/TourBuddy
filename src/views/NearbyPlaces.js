@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { View, Text, Button } from 'react-native'; // Import Button component
-import MapView, { Marker } from 'react-native-maps';
+import MapView, { Marker,PROVIDER_GOOGLE  } from 'react-native-maps';
 import * as Location from 'expo-location'; // Updated import
 import axios from 'axios';
 import { GOOGLE_MAPS_API_KEY } from "@env";
@@ -67,7 +67,7 @@ export default class NearbyPlaces extends Component {
     }
     return (
       <View style={{ flex: 1 }}>
-        <MapView style={{ flex: 1 }} region={region}>
+        <MapView style={{ flex: 1 }} region={region} provider={PROVIDER_GOOGLE}>
           <Marker coordinate={region} />
           {places.map(place => (
             <Marker
