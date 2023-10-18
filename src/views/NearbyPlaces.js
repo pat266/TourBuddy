@@ -1,8 +1,7 @@
 import React, { Component } from 'react';
-import { View, Text } from 'react-native';
+import { View, Text, Button } from 'react-native'; // Import Button component
 import MapView, { Marker } from 'react-native-maps';
-import { Location } from 'expo';
-import { Permissions } from 'expo-permissions';
+import * as Location from 'expo-location'; // Updated import
 import axios from 'axios';
 import { GOOGLE_MAPS_API_KEY } from "@env";
 
@@ -21,22 +20,26 @@ export default class NearbyPlaces extends Component {
   }
 
   getLocationAsync = async () => {
-    const { status } = await Permissions.askAsync(Permissions.LOCATION);
-    if (status !== 'granted') {
-      console.log('Permission to access location was denied');
-      return;
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync(); // Updated permission request method
+      if (status !== 'granted') {
+        console.log('Permission to access location was denied');
+        return;
+      }
+      const location = await Location.getCurrentPositionAsync({});
+      const { latitude, longitude } = location.coords;
+      this.setState({
+        region: {
+          latitude,
+          longitude,
+          latitudeDelta: 0.01,
+          longitudeDelta: 0.01,
+        },
+      });
+      this.getNearbyPlaces(latitude, longitude);
+    } catch (error) {
+      console.log('Error getting location:', error);
     }
-    const location = await Location.getCurrentPositionAsync({});
-    const { latitude, longitude } = location.coords;
-    this.setState({
-      region: {
-        latitude,
-        longitude,
-        latitudeDelta: 0.01,
-        longitudeDelta: 0.01,
-      },
-    });
-    this.getNearbyPlaces(latitude, longitude);
   };
 
   getNearbyPlaces = async (latitude, longitude) => {
@@ -46,7 +49,7 @@ export default class NearbyPlaces extends Component {
       const response = await axios.get(url);
       this.setState({ places: response.data.results });
     } catch (error) {
-      console.log(error);
+      console.log('Error getting nearby places:', error);
     }
   };
 
@@ -75,7 +78,7 @@ export default class NearbyPlaces extends Component {
               }}
               title={place.name}
               description={place.vicinity}
-              pinColor={place.types.includes('restaurant') ? 'red' : 'blue'} // Change pin color based on place type
+              pinColor={place.types.includes('restaurant') ? 'red' : 'blue'}
             />
           ))}
         </MapView>
