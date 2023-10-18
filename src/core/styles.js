@@ -1,6 +1,36 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
+import { theme } from '../core/theme'
 
-export default StyleSheet.create({
+export const StackNavigatorStyles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: 'lightblue', 
+    },
+});
+
+
+export const loginStyles = StyleSheet.create({
+  forgotPassword: {
+    width: '100%',
+    alignItems: 'flex-end',
+    marginBottom: 10,
+  },
+  row: {
+    flexDirection: 'row',
+    marginTop: 4,
+  },
+  forgot: {
+    fontSize: 13,
+    color: theme.colors.secondary,
+  },
+  link: {
+    fontWeight: 'bold',
+    color: theme.colors.primary,
+  },
+})
+
+
+export const RegistrationFormStyles = StyleSheet.create({
     RegistrationForm: {
       flex: 1,
       paddingTop: 50,
@@ -38,4 +68,4 @@ export default StyleSheet.create({
       fontSize: 18,
     },
   });
-  
+
