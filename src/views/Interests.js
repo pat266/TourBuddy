@@ -28,7 +28,7 @@ export default class RegistrationForm extends React.Component {
           underlineColorAndroid={'transparent'}
         />
 
-        <TouchableOpacity style={RegistrationFormStyles.submit} onPress={() => this.props.navigation.navigate('Registration_Beginning')}>
+        <TouchableOpacity style={RegistrationFormStyles.submit} onPress={() => this.props.navigation.navigate('RegistrationForm')}>
           <Text style={RegistrationFormStyles.submitText} allowFontScaling={true}>Next</Text>
         </TouchableOpacity>
       </View>

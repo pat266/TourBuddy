@@ -26,7 +26,7 @@ export default class RegistrationForm extends React.Component {
           <Text style={RegistrationFormStyles.submitText} allowFontScaling={true}>Login</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={RegistrationFormStyles.submit} onPress={() => this.props.navigation.navigate('Registration_Beginning')}>
+        <TouchableOpacity style={RegistrationFormStyles.submit} onPress={() => this.props.navigation.navigate('RegistrationForm')}>
           <Text style={RegistrationFormStyles.submitText} allowFontScaling={true}>Create Account</Text>
         </TouchableOpacity>
 
