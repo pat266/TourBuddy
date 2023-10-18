@@ -13,6 +13,7 @@ export default class NearbyPlaces extends Component {
       places: [],
       etaFilter: '10', // Default ETA filter is 10 minutes
     };
+    this.handleEtaFilterChange = this.handleEtaFilterChange.bind(this);
   }
 
   componentDidMount() {
@@ -57,6 +58,7 @@ export default class NearbyPlaces extends Component {
     this.setState({ etaFilter }, () => {
       const { region } = this.state;
       this.getNearbyPlaces(region.latitude, region.longitude);
+      console.log('ETA Filter changed to:', etaFilter);
     });
   };
 
@@ -67,7 +69,7 @@ export default class NearbyPlaces extends Component {
     }
     return (
       <View style={{ flex: 1 }}>
-        <MapView style={{ flex: 1 }} region={region} provider={PROVIDER_GOOGLE}>
+        <MapView style={{ flex: 1 }} region={region} provider={PROVIDER_GOOGLE} cacheEnabled={true} loadingEnabled={true}>
           <Marker coordinate={region} />
           {places.map(place => (
             <Marker
