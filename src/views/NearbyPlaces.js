@@ -1,9 +1,10 @@
 import React, { Component } from 'react';
-import { View, Text, Button, Alert, Linking } from 'react-native';
+import { View, Text, Button, Alert, Linking, TouchableOpacity } from 'react-native';
 import MapView, { Marker, Callout, PROVIDER_GOOGLE } from 'react-native-maps';
 import * as Location from 'expo-location';
 import axios from 'axios';
 import { GOOGLE_MAPS_API_KEY } from "@env";
+import { CalloutStyles } from '../core/styles';
 
 export default class NearbyPlaces extends Component {
   constructor(props) {
@@ -58,8 +59,8 @@ export default class NearbyPlaces extends Component {
     const { etaFilter } = this.state;
     const url = 'https://places.googleapis.com/v1/places:searchText';
     const data = {
-      textQuery: "attractions OR restaurants",
-      maxResultCount: 5,
+      textQuery: "local attractions or restaurants",
+      maxResultCount: 20,
       locationBias: {
         circle: {
           center: { latitude, longitude },
@@ -190,22 +191,47 @@ const MemoizedMarker = React.memo(function MemoizedMarker({ place }) {
   const { text: placeName } = displayName;
   const { latitude, longitude } = location;
 
+  let pinColor = 'blue';
+  if (types.includes('culture') || types.includes('education') || types.includes('entertainment') || types.includes('recreation')) {
+    pinColor = 'purple';
+  } else if (types.includes('food') || types.includes('drink')) {
+    pinColor = 'orange';
+  } else if (types.includes('geocode')) {
+    pinColor = 'black';
+  } else if (types.includes('health') || types.includes('wellness')) {
+    pinColor = 'pink';
+  } else if (types.includes('lodging')) {
+    pinColor = 'brown';
+  } else if (types.includes('services')) {
+    pinColor = 'teal';
+  } else if (types.includes('shopping')) {
+    pinColor = 'indigo';
+  } else if (types.includes('sports')) {
+    pinColor = 'maroon';
+  }
+
   return (
     <Marker
       coordinate={{
         latitude,
         longitude,
       }}
-      pinColor={'blue'}  // Update color logic if needed
+      pinColor={pinColor}
     >
-      <Callout onPress={() => Linking.openURL(websiteUri)}>
-        <View style={{ width: 200 }}>
-          <Text style={{ fontWeight: 'bold' }}>{placeName}</Text>
-          {/*<Text>Address: <Text>{formattedAddress}</Text></Text>
-          <Text>Price Level: <Text>{priceLevel}</Text></Text>*/}
-          <Text>Rating: <Text>{rating} ({userRatingCount} ratings)</Text></Text>
-          <Text>Description: <Text>{editorialSummary}</Text></Text>
-          <Text style={{ color: 'blue' }}>Website</Text>
+      <Callout>
+        <View style={CalloutStyles.calloutContainer}>
+          <Text style={CalloutStyles.calloutTitle}>{placeName}</Text>
+          {/*<Text style={CalloutStyles.calloutText}>Address: {formattedAddress}</Text>
+          {priceLevel && <Text style={CalloutStyles.calloutText}>Price Level: {priceLevel}</Text>}*/}
+          <Text style={CalloutStyles.calloutText}>Rating: {rating} ({userRatingCount} ratings)</Text>
+          {editorialSummary && editorialSummary.text && (
+            <Text style={CalloutStyles.calloutText}>
+              Description: {editorialSummary.text}
+            </Text>
+          )}
+          <TouchableOpacity onPress={() => Linking.openURL(websiteUri)}>
+            <Text style={CalloutStyles.calloutLink}>Website</Text>
+          </TouchableOpacity>
         </View>
       </Callout>
     </Marker>
