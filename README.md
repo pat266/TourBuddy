@@ -41,6 +41,9 @@ if  the above doesn't work
 yarn install
 ```
 
+Rename the `.env.env` file to `.env`.
+*Note that you need to enable Maps SDK for Android/Maps SDK for iOS, Places API (New) in the APIs & Services (https://console.cloud.google.com/google/maps-apis/api-list)*
+
 
 Start the expo development server:
 ```

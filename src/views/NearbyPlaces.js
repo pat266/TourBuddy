@@ -1,24 +1,10 @@
 import React, { Component } from 'react';
-import { View, Text, Button, Alert } from 'react-native';
-import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
+import { View, Text, Button, Alert, Linking, TouchableOpacity } from 'react-native';
+import MapView, { Marker, Callout, PROVIDER_GOOGLE } from 'react-native-maps';
 import * as Location from 'expo-location';
 import axios from 'axios';
 import { GOOGLE_MAPS_API_KEY } from "@env";
-
-const MemoizedMarker = React.memo(function MemoizedMarker({ place }) {
-  return (
-    <Marker
-      key={place.id}
-      coordinate={{
-        latitude: place.geometry.location.lat,
-        longitude: place.geometry.location.lng,
-      }}
-      title={place.name}
-      description={place.vicinity}
-      pinColor={place.types.includes('restaurant') ? 'red' : 'blue'}
-    />
-  );
-});
+import { CalloutStyles, LightGoogleMapsStyle } from '../core/styles';
 
 export default class NearbyPlaces extends Component {
   constructor(props) {
@@ -26,22 +12,15 @@ export default class NearbyPlaces extends Component {
     this.state = {
       region: null,
       places: [],
-      etaFilter: '10',
+      etaFilter: 3000,
     };
-    this.handleTenMinPress = this.handleEtaFilterChange.bind(this, '10');
-    this.handleTwentyMinPress = this.handleEtaFilterChange.bind(this, '20');
-    this.handleThirtyMinPress = this.handleEtaFilterChange.bind(this, '30');
+    this.handleTenMinPress = this.handleEtaFilterChange.bind(this, 3000);
+    this.handleTwentyMinPress = this.handleEtaFilterChange.bind(this, 6000);
+    this.handleThirtyMinPress = this.handleEtaFilterChange.bind(this, 9000);
   }
 
   componentDidMount() {
-    Alert.alert(
-      'Location Permission',
-      'Do you consent to share your information?',
-      [
-        { text: 'Yes', onPress: this.getLocationAsync },
-        { text: 'No', onPress: () => console.log('Permission denied'), style: 'cancel' },
-      ],
-    );
+    this.getLocationAsync();
   }
 
   getLocationAsync = async () => {
@@ -53,7 +32,7 @@ export default class NearbyPlaces extends Component {
       }
       const location = await Location.getCurrentPositionAsync({});
       const { latitude, longitude } = location.coords;
-      const places = await this.getNearbyPlaces(latitude, longitude);
+      this.setNearbyPlaces(latitude, longitude);
       this.setState({
         region: {
           latitude,
@@ -61,30 +40,55 @@ export default class NearbyPlaces extends Component {
           latitudeDelta: 0.01,
           longitudeDelta: 0.01,
         },
-        places,
       });
     } catch (error) {
+      console.log("getLocationAsycn: ", error);
       Alert.alert('Error', 'Failed to get location. Please try again.');
     }
   };
 
-  getNearbyPlaces = async (latitude, longitude) => {
+  getNearbyPlaces = async (latitude, longitude, textQuery) => {
     const { etaFilter } = this.state;
-    const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${latitude},${longitude}&radius=500&type=restaurant&key=${GOOGLE_MAPS_API_KEY}&maxwidth=400&maxheight=400&rankby=distance&arrival_time=${etaFilter}`;
+    const url = 'https://places.googleapis.com/v1/places:searchText';
+    const data = {
+      textQuery: textQuery,
+      maxResultCount: 5,
+      locationBias: {
+        circle: {
+          center: { latitude, longitude },
+          radius: etaFilter,
+        }
+      },
+    };
+    const headers = {
+      'Content-Type': 'application/json',
+      'X-Goog-Api-Key': GOOGLE_MAPS_API_KEY,
+      'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.location,places.currentOpeningHours,places.editorialSummary,places.priceLevel,places.rating,places.userRatingCount,places.websiteUri,places.types',
+    };
+  
     try {
-      const response = await axios.get(url);
-      return response.data.results;
+      const response = await axios.post(url, data, { headers });
+      // console.log(response.data.places);
+      return response.data.places;
     } catch (error) {
       Alert.alert('Error', 'Failed to get nearby places. Please try again.');
+      console.error('getNearbyPlaces: ', error);
     }
   };
+  
+  setNearbyPlaces = async(latitude, longitude) => {
+    const restaurants = await this.getNearbyPlaces(latitude, longitude, "restaurants");
+    const attractions = await this.getNearbyPlaces(latitude, longitude, "local attractions");
+    this.setState({ places: restaurants.concat(attractions) });
+  }
 
   handleEtaFilterChange = async (etaFilter) => {
     this.setState({ etaFilter }, async () => {
       const { region } = this.state;
-      const places = await this.getNearbyPlaces(region.latitude, region.longitude);
-      this.setState({ places });
-      console.log('ETA Filter changed to:', etaFilter);
+      this.setNearbyPlaces(region.latitude, region.longitude);
+      // const places = await this.getNearbyPlaces(region.latitude, region.longitude);
+      // this.setState({ places });
+      // console.log('ETA Filter changed to:', etaFilter);
     });
   };
 
@@ -95,7 +99,7 @@ export default class NearbyPlaces extends Component {
     }
     return (
       <View style={{ flex: 1 }}>
-        <MapView style={{ flex: 1 }} region={region} provider={PROVIDER_GOOGLE} cacheEnabled={true} loadingEnabled={true}>
+        <MapView style={{ flex: 1 }} region={region} customMapStyle={LightGoogleMapsStyle} provider={PROVIDER_GOOGLE} cacheEnabled={true} loadingEnabled={true}>
           <Marker coordinate={region} />
           {places.map(place => (
             <MemoizedMarker key={place.id} place={place} />
@@ -106,11 +110,73 @@ export default class NearbyPlaces extends Component {
           <Button title="10 min" onPress={this.handleTenMinPress} />
           <Button title="20 min" onPress={this.handleTwentyMinPress} />
           <Button title="30 min" onPress={this.handleThirtyMinPress} />
-          {places.map(place => (
-            <Text key={place.id}>{place.name}</Text>
-          ))}
         </View>
       </View>
     );
   }
 }
+
+const MemoizedMarker = React.memo(function MemoizedMarker({ place }) {
+  const {
+    displayName,
+    formattedAddress,
+    location,
+    priceLevel,
+    rating,
+    userRatingCount,
+    websiteUri,
+    editorialSummary,
+    currentOpeningHours,
+    types,
+  } = place;
+
+  const { text: placeName } = displayName;
+  const { latitude, longitude } = location;
+
+  let pinColor = 'blue';
+  if (types.includes('culture') || types.includes('education') || types.includes('entertainment') || types.includes('recreation')) {
+    pinColor = 'purple';
+  } else if (types.includes('food') || types.includes('drink')) {
+    pinColor = 'orange';
+  } else if (types.includes('geocode')) {
+    pinColor = 'black';
+  } else if (types.includes('health') || types.includes('wellness')) {
+    pinColor = 'pink';
+  } else if (types.includes('lodging')) {
+    pinColor = 'brown';
+  } else if (types.includes('services')) {
+    pinColor = 'teal';
+  } else if (types.includes('shopping')) {
+    pinColor = 'indigo';
+  } else if (types.includes('sports')) {
+    pinColor = 'maroon';
+  }
+
+  return (
+    <Marker
+      coordinate={{
+        latitude,
+        longitude,
+      }}
+      pinColor={pinColor}
+    >
+      <Callout>
+        <View style={CalloutStyles.calloutContainer}>
+          <Text style={CalloutStyles.calloutTitle}>{placeName}</Text>
+          {/*<Text style={CalloutStyles.calloutText}>Address: {formattedAddress}</Text>
+          {priceLevel && <Text style={CalloutStyles.calloutText}>Price Level: {priceLevel}</Text>}*/}
+          <Text style={CalloutStyles.calloutText}>Rating: {rating} ({userRatingCount} ratings)</Text>
+          {editorialSummary && editorialSummary.text && (
+            <Text style={CalloutStyles.calloutText}>
+              Description: {editorialSummary.text}
+            </Text>
+          )}
+          <TouchableOpacity onPress={() => Linking.openURL(websiteUri)}>
+            <Text style={CalloutStyles.calloutLink}>Website</Text>
+          </TouchableOpacity>
+        </View>
+      </Callout>
+    </Marker>
+  );
+});
+
