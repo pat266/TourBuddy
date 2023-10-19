@@ -6,7 +6,12 @@ import axios from 'axios';
 import { GOOGLE_MAPS_API_KEY } from "@env";
 import { CalloutStyles, LightGoogleMapsStyle } from '../core/styles';
 
-export default class NearbyPlaces extends Component {
+export default class NearbyPlaces extends Component{
+
+
+
+
+
   constructor(props) {
     super(props);
     this.state = {
@@ -99,7 +104,7 @@ export default class NearbyPlaces extends Component {
     }
     return (
       <View style={{ flex: 1 }}>
-        <MapView style={{ flex: 1 }} region={region} customMapStyle={LightGoogleMapsStyle} provider={PROVIDER_GOOGLE} cacheEnabled={true} loadingEnabled={true}>
+        <MapView style={{ flex: 1 }} region={region} customMapStyle={LightGoogleMapsStyle} provider={PROVIDER_GOOGLE} cacheEnabled={true} loadingEnabled={true} liteMode={true}>
           <Marker coordinate={region} />
           {places.map(place => (
             <MemoizedMarker key={place.id} place={place} />
