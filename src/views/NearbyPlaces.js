@@ -5,21 +5,6 @@ import * as Location from 'expo-location';
 import axios from 'axios';
 import { GOOGLE_MAPS_API_KEY } from "@env";
 
-const MemoizedMarker = React.memo(function MemoizedMarker({ place }) {
-  return (
-    <Marker
-      key={place.id}
-      coordinate={{
-        latitude: place.geometry.location.lat,
-        longitude: place.geometry.location.lng,
-      }}
-      title={place.name}
-      description={place.vicinity}
-      pinColor={place.types.includes('restaurant') ? 'red' : 'blue'}
-    />
-  );
-});
-
 export default class NearbyPlaces extends Component {
   constructor(props) {
     super(props);
@@ -95,7 +80,7 @@ export default class NearbyPlaces extends Component {
     }
     return (
       <View style={{ flex: 1 }}>
-        <MapView style={{ flex: 1 }} region={region} provider={PROVIDER_GOOGLE} cacheEnabled={true} loadingEnabled={true}>
+        <MapView style={{ flex: 1 }} region={region} customMapStyle={mapStyle} provider={PROVIDER_GOOGLE} cacheEnabled={true} loadingEnabled={true}>
           <Marker coordinate={region} />
           {places.map(place => (
             <MemoizedMarker key={place.id} place={place} />
@@ -114,3 +99,73 @@ export default class NearbyPlaces extends Component {
     );
   }
 }
+
+const mapStyle = [
+  {
+    "featureType": "administrative",
+    "elementType": "geometry",
+    "stylers": [
+      {
+        "visibility": "off"
+      }
+    ]
+  },
+  {
+    "featureType": "administrative.land_parcel",
+    "elementType": "labels",
+    "stylers": [
+      {
+        "visibility": "off"
+      }
+    ]
+  },
+  {
+    "featureType": "poi",
+    "stylers": [
+      {
+        "visibility": "off"
+      }
+    ]
+  },
+  {
+    "featureType": "road",
+    "elementType": "labels.icon",
+    "stylers": [
+      {
+        "visibility": "off"
+      }
+    ]
+  },
+  {
+    "featureType": "road.local",
+    "elementType": "labels",
+    "stylers": [
+      {
+        "visibility": "off"
+      }
+    ]
+  },
+  {
+    "featureType": "transit",
+    "stylers": [
+      {
+        "visibility": "off"
+      }
+    ]
+  }
+]
+
+const MemoizedMarker = React.memo(function MemoizedMarker({ place }) {
+  return (
+    <Marker
+      key={place.id}
+      coordinate={{
+        latitude: place.geometry.location.lat,
+        longitude: place.geometry.location.lng,
+      }}
+      title={place.name}
+      description={place.vicinity}
+      pinColor={place.types.includes('restaurant') ? 'red' : 'blue'}
+    />
+  );
+});
