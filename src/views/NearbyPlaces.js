@@ -5,6 +5,7 @@ import * as Location from 'expo-location';
 import axios from 'axios';
 import { GOOGLE_MAPS_API_KEY } from "@env";
 import { CalloutStyles, LightGoogleMapsStyle } from '../core/styles';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 export default class NearbyPlaces extends Component {
   constructor(props) {
@@ -68,7 +69,7 @@ export default class NearbyPlaces extends Component {
   
     try {
       const response = await axios.post(url, data, { headers });
-      // console.log(response.data.places);
+      //console.log(response.data.places);
       return response.data.places;
     } catch (error) {
       Alert.alert('Error', 'Failed to get nearby places. Please try again.');
@@ -97,23 +98,27 @@ export default class NearbyPlaces extends Component {
     if (!region) {
       return <Text>Loading...</Text>;
     }
+  
     return (
-      <View style={{ flex: 1 }}>
-        <MapView style={{ flex: 1 }} region={region} customMapStyle={LightGoogleMapsStyle} provider={PROVIDER_GOOGLE} cacheEnabled={true} loadingEnabled={true}>
-          <Marker coordinate={region} />
-          {places.map(place => (
-            <MemoizedMarker key={place.id} place={place} />
-          ))}
-        </MapView>
-        <View style={{ backgroundColor: 'white' }}>
-          <Text>ETA Filter:</Text>
-          <Button title="10 min" onPress={this.handleTenMinPress} />
-          <Button title="20 min" onPress={this.handleTwentyMinPress} />
-          <Button title="30 min" onPress={this.handleThirtyMinPress} />
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <View style={{ flex: 1 }}>
+          <MapView style={{ flex: 1 }} region={region} customMapStyle={LightGoogleMapsStyle} provider={PROVIDER_GOOGLE} cacheEnabled={true} loadingEnabled={true} liteMode={true}>
+            <Marker coordinate={region} />
+            {places.map(place => (
+              <MemoizedMarker key={place.id} place={place} />
+            ))}
+          </MapView>
+          <View style={{ backgroundColor: 'white' }}>
+            <Text>ETA Filter:</Text>
+            <Button title="10 min" onPress={this.handleTenMinPress} />
+            <Button title="20 min" onPress={this.handleTwentyMinPress} />
+            <Button title="30 min" onPress={this.handleThirtyMinPress} />
+          </View>
         </View>
-      </View>
+      </GestureHandlerRootView>
     );
   }
+  
 }
 
 const MemoizedMarker = React.memo(function MemoizedMarker({ place }) {
