@@ -30,7 +30,7 @@ export default function RegistrationForm({ navigation }) {
     }
     navigation.reset({
       index: 0,
-      routes: [{ name: 'Login' }],
+      routes: [{ name: 'Interests' }],
     })
   }
 
