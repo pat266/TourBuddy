@@ -4,7 +4,7 @@ import MapView, { Marker, Callout, PROVIDER_GOOGLE } from 'react-native-maps';
 import * as Location from 'expo-location';
 import axios from 'axios';
 import { GOOGLE_MAPS_API_KEY } from "@env";
-import { CalloutStyles } from '../core/styles';
+import { CalloutStyles, LightGoogleMapsStyle } from '../core/styles';
 
 export default class NearbyPlaces extends Component {
   constructor(props) {
@@ -12,22 +12,15 @@ export default class NearbyPlaces extends Component {
     this.state = {
       region: null,
       places: [],
-      etaFilter: 8000,
+      etaFilter: 3000,
     };
-    this.handleTenMinPress = this.handleEtaFilterChange.bind(this, 8000);
-    this.handleTwentyMinPress = this.handleEtaFilterChange.bind(this, 16000);
-    this.handleThirtyMinPress = this.handleEtaFilterChange.bind(this, 24000);
+    this.handleTenMinPress = this.handleEtaFilterChange.bind(this, 3000);
+    this.handleTwentyMinPress = this.handleEtaFilterChange.bind(this, 6000);
+    this.handleThirtyMinPress = this.handleEtaFilterChange.bind(this, 9000);
   }
 
   componentDidMount() {
-    Alert.alert(
-      'Location Permission',
-      'Do you consent to share your information?',
-      [
-        { text: 'Yes', onPress: this.getLocationAsync },
-        { text: 'No', onPress: () => console.log('Permission denied'), style: 'cancel' },
-      ],
-    );
+    this.getLocationAsync();
   }
 
   getLocationAsync = async () => {
@@ -39,7 +32,7 @@ export default class NearbyPlaces extends Component {
       }
       const location = await Location.getCurrentPositionAsync({});
       const { latitude, longitude } = location.coords;
-      const places = await this.getNearbyPlaces(latitude, longitude);
+      this.setNearbyPlaces(latitude, longitude);
       this.setState({
         region: {
           latitude,
@@ -47,7 +40,6 @@ export default class NearbyPlaces extends Component {
           latitudeDelta: 0.01,
           longitudeDelta: 0.01,
         },
-        places,
       });
     } catch (error) {
       console.log("getLocationAsycn: ", error);
@@ -55,12 +47,12 @@ export default class NearbyPlaces extends Component {
     }
   };
 
-  getNearbyPlaces = async (latitude, longitude) => {
+  getNearbyPlaces = async (latitude, longitude, textQuery) => {
     const { etaFilter } = this.state;
     const url = 'https://places.googleapis.com/v1/places:searchText';
     const data = {
-      textQuery: "local attractions or restaurants",
-      maxResultCount: 20,
+      textQuery: textQuery,
+      maxResultCount: 5,
       locationBias: {
         circle: {
           center: { latitude, longitude },
@@ -76,22 +68,27 @@ export default class NearbyPlaces extends Component {
   
     try {
       const response = await axios.post(url, data, { headers });
-      console.log(response.data.places);
-      return response.data.places;  // Adjust this line based on the actual response structure
+      // console.log(response.data.places);
+      return response.data.places;
     } catch (error) {
       Alert.alert('Error', 'Failed to get nearby places. Please try again.');
-      console.error(error);  // Log the error for debugging purposes
+      console.error('getNearbyPlaces: ', error);
     }
   };
   
-  
+  setNearbyPlaces = async(latitude, longitude) => {
+    const restaurants = await this.getNearbyPlaces(latitude, longitude, "restaurants");
+    const attractions = await this.getNearbyPlaces(latitude, longitude, "local attractions");
+    this.setState({ places: restaurants.concat(attractions) });
+  }
 
   handleEtaFilterChange = async (etaFilter) => {
     this.setState({ etaFilter }, async () => {
       const { region } = this.state;
-      const places = await this.getNearbyPlaces(region.latitude, region.longitude);
-      this.setState({ places });
-      console.log('ETA Filter changed to:', etaFilter);
+      this.setNearbyPlaces(region.latitude, region.longitude);
+      // const places = await this.getNearbyPlaces(region.latitude, region.longitude);
+      // this.setState({ places });
+      // console.log('ETA Filter changed to:', etaFilter);
     });
   };
 
@@ -102,7 +99,7 @@ export default class NearbyPlaces extends Component {
     }
     return (
       <View style={{ flex: 1 }}>
-        <MapView style={{ flex: 1 }} region={region} customMapStyle={mapStyle} provider={PROVIDER_GOOGLE} cacheEnabled={true} loadingEnabled={true}>
+        <MapView style={{ flex: 1 }} region={region} customMapStyle={LightGoogleMapsStyle} provider={PROVIDER_GOOGLE} cacheEnabled={true} loadingEnabled={true}>
           <Marker coordinate={region} />
           {places.map(place => (
             <MemoizedMarker key={place.id} place={place} />
@@ -118,61 +115,6 @@ export default class NearbyPlaces extends Component {
     );
   }
 }
-
-const mapStyle = [
-  {
-    "featureType": "administrative",
-    "elementType": "geometry",
-    "stylers": [
-      {
-        "visibility": "off"
-      }
-    ]
-  },
-  {
-    "featureType": "administrative.land_parcel",
-    "elementType": "labels",
-    "stylers": [
-      {
-        "visibility": "off"
-      }
-    ]
-  },
-  {
-    "featureType": "poi",
-    "stylers": [
-      {
-        "visibility": "off"
-      }
-    ]
-  },
-  {
-    "featureType": "road",
-    "elementType": "labels.icon",
-    "stylers": [
-      {
-        "visibility": "off"
-      }
-    ]
-  },
-  {
-    "featureType": "road.local",
-    "elementType": "labels",
-    "stylers": [
-      {
-        "visibility": "off"
-      }
-    ]
-  },
-  {
-    "featureType": "transit",
-    "stylers": [
-      {
-        "visibility": "off"
-      }
-    ]
-  }
-]
 
 const MemoizedMarker = React.memo(function MemoizedMarker({ place }) {
   const {
