@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
-import { View, Text, Button, Alert } from 'react-native';
-import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
+import { View, Text, Button, Alert, Linking } from 'react-native';
+import MapView, { Marker, Callout, PROVIDER_GOOGLE } from 'react-native-maps';
 import * as Location from 'expo-location';
 import axios from 'axios';
 import { GOOGLE_MAPS_API_KEY } from "@env";
@@ -11,11 +11,11 @@ export default class NearbyPlaces extends Component {
     this.state = {
       region: null,
       places: [],
-      etaFilter: '10',
+      etaFilter: 8000,
     };
-    this.handleTenMinPress = this.handleEtaFilterChange.bind(this, '10');
-    this.handleTwentyMinPress = this.handleEtaFilterChange.bind(this, '20');
-    this.handleThirtyMinPress = this.handleEtaFilterChange.bind(this, '30');
+    this.handleTenMinPress = this.handleEtaFilterChange.bind(this, 8000);
+    this.handleTwentyMinPress = this.handleEtaFilterChange.bind(this, 16000);
+    this.handleThirtyMinPress = this.handleEtaFilterChange.bind(this, 24000);
   }
 
   componentDidMount() {
@@ -49,20 +49,41 @@ export default class NearbyPlaces extends Component {
         places,
       });
     } catch (error) {
+      console.log("getLocationAsycn: ", error);
       Alert.alert('Error', 'Failed to get location. Please try again.');
     }
   };
 
   getNearbyPlaces = async (latitude, longitude) => {
     const { etaFilter } = this.state;
-    const url = `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${latitude},${longitude}&radius=500&type=restaurant&key=${GOOGLE_MAPS_API_KEY}&maxwidth=400&maxheight=400&rankby=distance&arrival_time=${etaFilter}`;
+    const url = 'https://places.googleapis.com/v1/places:searchText';
+    const data = {
+      textQuery: "attractions OR restaurants",
+      maxResultCount: 5,
+      locationBias: {
+        circle: {
+          center: { latitude, longitude },
+          radius: etaFilter,
+        }
+      },
+    };
+    const headers = {
+      'Content-Type': 'application/json',
+      'X-Goog-Api-Key': GOOGLE_MAPS_API_KEY,
+      'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.location,places.currentOpeningHours,places.editorialSummary,places.priceLevel,places.rating,places.userRatingCount,places.websiteUri,places.types',
+    };
+  
     try {
-      const response = await axios.get(url);
-      return response.data.results;
+      const response = await axios.post(url, data, { headers });
+      console.log(response.data.places);
+      return response.data.places;  // Adjust this line based on the actual response structure
     } catch (error) {
       Alert.alert('Error', 'Failed to get nearby places. Please try again.');
+      console.error(error);  // Log the error for debugging purposes
     }
   };
+  
+  
 
   handleEtaFilterChange = async (etaFilter) => {
     this.setState({ etaFilter }, async () => {
@@ -91,9 +112,6 @@ export default class NearbyPlaces extends Component {
           <Button title="10 min" onPress={this.handleTenMinPress} />
           <Button title="20 min" onPress={this.handleTwentyMinPress} />
           <Button title="30 min" onPress={this.handleThirtyMinPress} />
-          {places.map(place => (
-            <Text key={place.id}>{place.name}</Text>
-          ))}
         </View>
       </View>
     );
@@ -156,16 +174,41 @@ const mapStyle = [
 ]
 
 const MemoizedMarker = React.memo(function MemoizedMarker({ place }) {
+  const {
+    displayName,
+    formattedAddress,
+    location,
+    priceLevel,
+    rating,
+    userRatingCount,
+    websiteUri,
+    editorialSummary,
+    currentOpeningHours,
+    types,
+  } = place;
+
+  const { text: placeName } = displayName;
+  const { latitude, longitude } = location;
+
   return (
     <Marker
-      key={place.id}
       coordinate={{
-        latitude: place.geometry.location.lat,
-        longitude: place.geometry.location.lng,
+        latitude,
+        longitude,
       }}
-      title={place.name}
-      description={place.vicinity}
-      pinColor={place.types.includes('restaurant') ? 'red' : 'blue'}
-    />
+      pinColor={'blue'}  // Update color logic if needed
+    >
+      <Callout onPress={() => Linking.openURL(websiteUri)}>
+        <View style={{ width: 200 }}>
+          <Text style={{ fontWeight: 'bold' }}>{placeName}</Text>
+          {/*<Text>Address: <Text>{formattedAddress}</Text></Text>
+          <Text>Price Level: <Text>{priceLevel}</Text></Text>*/}
+          <Text>Rating: <Text>{rating} ({userRatingCount} ratings)</Text></Text>
+          <Text>Description: <Text>{editorialSummary}</Text></Text>
+          <Text style={{ color: 'blue' }}>Website</Text>
+        </View>
+      </Callout>
+    </Marker>
   );
 });
+
