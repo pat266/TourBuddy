@@ -31,7 +31,7 @@ export default function LoginScreen({ navigation }) {
   return (
     <Background>
       <Logo />
-      <Header>Hello.</Header>
+      <Header>Login</Header>
       <TextInput
         label="Email"
         returnKeyType="next"

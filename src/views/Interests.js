@@ -14,7 +14,7 @@ export default function InterestsScreen({ navigation }) {
 
   const onNextPressed = () => {
     // Handle the logic for moving to the next screen here and pass the selected interests
-    navigation.navigate('NearbyPlaces', {
+    navigation.navigate('HomeScreen', {
       selectedInterests,
       preferredDistance,
       preferredCost,
