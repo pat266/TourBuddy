@@ -34,11 +34,19 @@ export default function RegistrationForm({ navigation }) {
     })
   }
 
+  const goBack = () => {
+    if (navigation.canGoBack()) {
+      navigation.goBack();
+    } else {
+      navigation.navigate('Login');
+    }
+  }
+
   return (
     <Background>
-      <BackButton goBack={navigation.goBack} />
+      <BackButton goBack={goBack} />
       <Logo />
-      <Header>Welcome.</Header>
+      <Header>Create Account</Header>
       <TextInput
         label="Name"
         returnKeyType="next"

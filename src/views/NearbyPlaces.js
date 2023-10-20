@@ -1,4 +1,8 @@
 import React, { Component } from 'react';
+import Background from '../components/Background'
+import Logo from '../components/Logo'
+import BackButton from '../components/BackButton'
+import { GoBackButtonStyles } from '../components/BackButton';
 import { View, Text, Button, Alert, Linking, TouchableOpacity } from 'react-native';
 import MapView, { Marker, Callout, PROVIDER_GOOGLE } from 'react-native-maps';
 import * as Location from 'expo-location';
@@ -7,10 +11,6 @@ import { GOOGLE_MAPS_API_KEY } from "@env";
 import { CalloutStyles, LightGoogleMapsStyle } from '../core/styles';
 
 export default class NearbyPlaces extends Component{
-
-
-
-
 
   constructor(props) {
     super(props);
@@ -91,16 +91,30 @@ export default class NearbyPlaces extends Component{
     this.setState({ etaFilter }, async () => {
       const { region } = this.state;
       this.setNearbyPlaces(region.latitude, region.longitude);
-      // const places = await this.getNearbyPlaces(region.latitude, region.longitude);
-      // this.setState({ places });
       // console.log('ETA Filter changed to:', etaFilter);
     });
   };
 
+  goBack = () => {
+    if (this.props.navigation.canGoBack()) {
+      this.props.navigation.goBack();
+    } else {
+      this.props.navigation.navigate('HomeScreen');
+    }
+  }
+  
+
   render() {
     const { region, places } = this.state;
     if (!region) {
-      return <Text>Loading...</Text>;
+      return (
+        <Background>
+          <BackButton goBack={this.goBack} />
+          <Logo />
+          <Text>Loading the Google Maps ...</Text>
+        </Background>
+        
+      );
     }
     return (
       <View style={{ flex: 1 }}>
@@ -110,6 +124,9 @@ export default class NearbyPlaces extends Component{
             <MemoizedMarker key={place.id} place={place} />
           ))}
         </MapView>
+        <View style={GoBackButtonStyles.container}>
+          <BackButton goBack={this.goBack} />
+        </View>
         <View style={{ backgroundColor: 'white' }}>
           <Text>ETA Filter:</Text>
           <Button title="10 min" onPress={this.handleTenMinPress} />

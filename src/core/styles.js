@@ -67,6 +67,10 @@ export const RegistrationFormStyles = StyleSheet.create({
       fontWeight: 'bold',
       fontSize: 18,
     },
+    link: {
+      fontWeight: 'bold',
+      color: theme.colors.primary,
+    },
   });
 
 export const CalloutStyles = StyleSheet.create({
