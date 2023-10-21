@@ -36,7 +36,8 @@ export default class NearbyPlaces extends Component{
         return;
       }
       const location = await Location.getCurrentPositionAsync({});
-      const { latitude, longitude } = location.coords;
+      // const { latitude, longitude } = location.coords;
+      const { latitude, longitude } = { latitude: 33.787037, longitude: -84.380527 };
       this.setNearbyPlaces(latitude, longitude);
       this.setState({
         region: {
@@ -57,7 +58,7 @@ export default class NearbyPlaces extends Component{
     const url = 'https://places.googleapis.com/v1/places:searchText';
     const data = {
       textQuery: textQuery,
-      maxResultCount: 5,
+      maxResultCount: 10,
       locationBias: {
         circle: {
           center: { latitude, longitude },
