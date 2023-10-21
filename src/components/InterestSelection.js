@@ -36,13 +36,17 @@ const InterestSelection = ({ selectedInterests, onInterestChange, preferredDista
     <View style={styles.container}>
       <Text style={styles.label}>Select Your Interests:</Text>
       {interests.map((interest, index) => (
-        <View key={index} style={styles.interestContainer}>
+        <TouchableOpacity
+          key={index}
+          style={styles.interestContainer}
+          onPress={() => toggleInterest(interest)}
+        >
           <Checkbox
             value={selectedInterests.includes(interest)}
             onValueChange={() => toggleInterest(interest)}
           />
           <Text style={styles.interestText}>{interest}</Text>
-        </View>
+        </TouchableOpacity>
       ))}
 
       <Text style={styles.label}>Preferred Time Travel (in minutes):</Text>
