@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, TextInput } from 'react-native';
+import Slider from '@react-native-community/slider';
 import Checkbox from 'expo-checkbox';
 
 const InterestSelection = ({ selectedInterests, onInterestChange, preferredDistance, onDistanceChange, preferredCost, onCostChange }) => {
@@ -16,6 +17,12 @@ const InterestSelection = ({ selectedInterests, onInterestChange, preferredDista
     'Movies and Entertainment'
   ];
 
+  const [preferredPrice, setpreferredPrice] = useState(3);
+
+  const onPriceChange = (value) => {
+    setpreferredPrice(value);
+  };
+
   // Function to toggle the selected interests
   const toggleInterest = (interest) => {
     if (selectedInterests.includes(interest)) {
@@ -29,16 +36,20 @@ const InterestSelection = ({ selectedInterests, onInterestChange, preferredDista
     <View style={styles.container}>
       <Text style={styles.label}>Select Your Interests:</Text>
       {interests.map((interest, index) => (
-        <View key={index} style={styles.interestContainer}>
+        <TouchableOpacity
+          key={index}
+          style={styles.interestContainer}
+          onPress={() => toggleInterest(interest)}
+        >
           <Checkbox
             value={selectedInterests.includes(interest)}
             onValueChange={() => toggleInterest(interest)}
           />
           <Text style={styles.interestText}>{interest}</Text>
-        </View>
+        </TouchableOpacity>
       ))}
 
-      <Text style={styles.label}>Preferred Distance (in meters):</Text>
+      <Text style={styles.label}>Preferred Time Travel (in minutes):</Text>
       <TextInput
         value={preferredDistance}
         onChangeText={onDistanceChange}
@@ -47,13 +58,18 @@ const InterestSelection = ({ selectedInterests, onInterestChange, preferredDista
         style={styles.input}
       />
 
-      <Text style={styles.label}>Preferred Cost (0-5):</Text>
-      <TextInput
-        value={preferredCost}
-        onChangeText={onCostChange}
-        placeholder="Enter preferred cost"
-        keyboardType="numeric"
-        style={styles.input}
+      <Text style={styles.label}>Preferred Cost (1-5):</Text>
+      <Text style={styles.sliderValue}>{preferredPrice}</Text>
+      <Slider
+        value={preferredPrice}
+        onValueChange={onPriceChange}
+        minimumValue={1}
+        maximumValue={5}
+        step={1}
+        style={styles.slider}
+        thumbTintColor="#f9a825"
+        minimumTrackTintColor="#f9a825"
+        maximumTrackTintColor="#ccc"
       />
     </View>
   );
@@ -82,6 +98,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginBottom: 10,
     paddingLeft: 10,
+  },
+  slider: {
+    marginBottom: 20,
+  },
+  sliderValue: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
 });
 

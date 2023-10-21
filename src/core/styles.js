@@ -98,6 +98,14 @@ export const CalloutStyles = StyleSheet.create({
 
 export const LightGoogleMapsStyle = [
   {
+    "elementType": "labels",
+    "stylers": [
+      {
+        "visibility": "off"
+      }
+    ]
+  },
+  {
     "featureType": "administrative",
     "elementType": "geometry",
     "stylers": [
@@ -108,7 +116,14 @@ export const LightGoogleMapsStyle = [
   },
   {
     "featureType": "administrative.land_parcel",
-    "elementType": "labels",
+    "stylers": [
+      {
+        "visibility": "off"
+      }
+    ]
+  },
+  {
+    "featureType": "administrative.neighborhood",
     "stylers": [
       {
         "visibility": "off"
@@ -126,15 +141,6 @@ export const LightGoogleMapsStyle = [
   {
     "featureType": "road",
     "elementType": "labels.icon",
-    "stylers": [
-      {
-        "visibility": "off"
-      }
-    ]
-  },
-  {
-    "featureType": "road.local",
-    "elementType": "labels",
     "stylers": [
       {
         "visibility": "off"
