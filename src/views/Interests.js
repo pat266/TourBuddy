@@ -55,11 +55,11 @@ export default function InterestsScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   button: {
-    marginTop: 24,
+    marginTop: 8, 
   },
   row: {
     flexDirection: 'row',
-    marginTop: 12,
+    marginTop: 4,
   },
   link: {
     color: theme.colors.primary,
