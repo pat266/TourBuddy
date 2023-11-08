@@ -1,12 +1,18 @@
+import crochet
+crochet.setup()
+
 import argparse
 import bs4
 from duckduckgo_search import DDGS
-import openai
+from openai import OpenAI
 import logging
 import threading
 import queue
 from readability import Document
 import json
+from multiprocessing import Process, Queue
+from multiprocessing import Pool
+import traceback
 
 # ******
 # this is a hack to stop scrapy from logging its version info to stdout
@@ -26,6 +32,9 @@ log_scrapy_info_module_dict['log_scrapy_info'] = null_log_scrapy_info
 
 import scrapy
 from scrapy.crawler import CrawlerProcess
+from twisted.internet import reactor, defer
+from scrapy.crawler import CrawlerRunner
+from scrapy.utils.log import configure_logging
 
 import os
 from dotenv import load_dotenv
@@ -33,16 +42,11 @@ from dotenv import load_dotenv
 # Load environment variables from .env file
 load_dotenv('../.env')
 
-# Retrieve the API key
-openai_api_key = os.getenv('OPENAI_API_KEY')
-
-if openai_api_key is not None and len(openai_api_key) != 0:
-    print("API key retrieved successfully.")
-else:
-    print("API key not found.")
-
 # OpenAI API Key
-openai.api_key = openai_api_key
+client = OpenAI(
+    # defaults to os.environ.get("OPENAI_API_KEY")
+    api_key=os.getenv('OPENAI_API_KEY'),
+)
 
 ddgs = DDGS()
 
@@ -73,21 +77,31 @@ You can use the url and title to help you understand the context of the text.
 Please extract only the useful information from the text. Try not to rewrite the text, but instead extract only the useful information from the text.
 """
 
-    response = openai.completions.create(
-        engine="text-davinci-003",
-        prompt=prompt,
-        max_tokens=1000,
+    response = client.chat.completions.create(
+        model="gpt-3.5-turbo-1106",
+        max_tokens=500,
         temperature=0.2,
-        top_p=1,
-        frequency_penalty=0,
-        presence_penalty=0
-    )
+        top_p=0.5,
+        frequency_penalty=0.3,
+        messages=
+        [
+            {
+                "role": "system",
+                "content": "You are a helpful assistant for text summarization.",
+            },
+            {
+                "role": "user",
+                "content": f"Summarize this for a tourist who is looking for information: {prompt}",
+            },
+        ],
 
+    )
+    print(response)
     if q:
-        q.put((ix, response['choices'][0]['text']))
+        q.put((ix, response.choices[0].message.content))
     logger.info(f"DONE extracting useful information from chunk {ix}, title: {title}")
 
-    text = response['choices'][0]['text']
+    text = response.choices[0].message.content.strip()
 
     # sometimes the first line is something like "Useful information extracted from the text:", so we remove that
     lines = text.splitlines()
@@ -111,7 +125,11 @@ def extract_useful_information(url, title, text, max_chunks):
     It uses threading to do this in parallel, because openai is slow.
     '''
 
-    chunks = [text[i*1000: i*1000+1100] for i in range(len(text)//1000)]
+    chunk_size = 3500
+    overlap = 100
+
+    # Create the chunks with the specified size and overlap
+    chunks = [text[i:i+chunk_size] for i in range(0, len(text), chunk_size - overlap)]
     chunks = chunks[:max_chunks]
 
     threads = []
@@ -252,6 +270,11 @@ def setloglevel(loglevel):
     logger = logging.getLogger('openai')
     logger.setLevel(logging_level)
 
+@crochet.run_in_reactor
+def run_spider(url_list, clean_with_llm):
+    crawler = CrawlerRunner()
+    deferred = crawler.crawl(MySpider, start_urls=url_list, clean_with_llm=clean_with_llm)
+    return deferred
 
 def ddgsearch(query, numresults=10, clean_with_llm=False, loglevel='ERROR'):
     '''
@@ -279,22 +302,37 @@ def ddgsearch(query, numresults=10, clean_with_llm=False, loglevel='ERROR'):
     urls = [result['href'] for result in results]
     urls = urls[:numresults]
 
-    process = CrawlerProcess()
     setloglevel(loglevel) # this is necessary because the crawler process modifies the log level
-    process.crawl(MySpider, urls, clean_with_llm)
-    process.start()
+    eventual_result = run_spider(urls, clean_with_llm)
+    
+    # Wait for the specified time or until the result is ready
+    try:
+        results = eventual_result.wait(timeout=300.0)  # waits for 5 minutes
+    except crochet.TimeoutError:
+        raise Exception("The scraping operation timed out.")
 
-    # here the spider has finished downloading the pages and cleaning them up
     return MySpider.results
 
+from flask import Flask, jsonify, request
+
+app = Flask(__name__)
+
+@app.route('/search', methods=['GET'])
+def get_ddgsearch():
+    # Extract query parameters
+    query = request.args.get('query', default="how to make a great pastrami sandwich", type=str)
+    numresults = request.args.get('numresults', default=10, type=int)
+    clean_with_llm = request.args.get('clean_with_llm', default=False, type=lambda v: v.lower() == 'true')
+    
+    # Call the ddgsearch function
+    try:
+        results = ddgsearch(query, numresults=numresults, clean_with_llm=clean_with_llm)
+        return jsonify(results)
+    except Exception as e:
+        # This will print the full traceback to the console or wherever your logs are directed
+        app.logger.error('Unhandled exception', exc_info=True)
+        return jsonify({"error": str(e)}), 500
+
+
 if __name__ == '__main__':
-    query = "how to make a great pastrami sandwich"
-
-    # search duckduckgo and scrape the results
-
-    results1 = ddgsearch(query, numresults=4, clean_with_llm=False)
-    results2 = ddgsearch(query, numresults=4, clean_with_llm=False)
-
-
-    # print the results
-    print (f"Results: {json.dumps(results1, indent=2)}")
+    app.run(debug=True, port=5000)
