@@ -1,7 +1,6 @@
 import crochet
 crochet.setup()
 
-import argparse
 import bs4
 from duckduckgo_search import DDGS
 from openai import OpenAI
@@ -9,10 +8,26 @@ import logging
 import threading
 import queue
 from readability import Document
-import json
-from multiprocessing import Process, Queue
-from multiprocessing import Pool
-import traceback
+from myspider import MySpider
+import scrapy
+from scrapy.crawler import CrawlerRunner
+
+import os
+from dotenv import load_dotenv
+from flask import Flask, jsonify, request
+
+app = Flask(__name__)
+
+# Load environment variables from .env file
+load_dotenv('../.env')
+
+# OpenAI API Key
+client = OpenAI(
+    # defaults to os.environ.get("OPENAI_API_KEY")
+    api_key=os.getenv('OPENAI_API_KEY'),
+)
+
+ddgs = DDGS()
 
 # ******
 # this is a hack to stop scrapy from logging its version info to stdout
@@ -30,25 +45,36 @@ log_scrapy_info_module_dict = scrapy.utils.log.__dict__
 log_scrapy_info_module_dict['log_scrapy_info'] = null_log_scrapy_info
 # ******
 
-import scrapy
-from scrapy.crawler import CrawlerProcess
-from twisted.internet import reactor, defer
-from scrapy.crawler import CrawlerRunner
-from scrapy.utils.log import configure_logging
+def setloglevel(loglevel):
+    # this function sets the log level for the script
+    if loglevel == 'DEBUG':
+        logging_level = logging.DEBUG
+    elif loglevel == 'INFO':
+        logging_level = logging.INFO
+    elif loglevel == 'WARNING':
+        logging_level = logging.WARNING
+    elif loglevel == 'ERROR':
+        logging_level = logging.ERROR
+    elif loglevel == 'CRITICAL':
+        logging_level = logging.CRITICAL
+    else:
+        logging_level = logging.INFO
 
-import os
-from dotenv import load_dotenv
-
-# Load environment variables from .env file
-load_dotenv('../.env')
-
-# OpenAI API Key
-client = OpenAI(
-    # defaults to os.environ.get("OPENAI_API_KEY")
-    api_key=os.getenv('OPENAI_API_KEY'),
-)
-
-ddgs = DDGS()
+    # surely there is a better way to do this?
+    logger = logging.getLogger('scrapy')
+    logger.setLevel(logging_level)
+    logger = logging.getLogger('filelock')
+    logger.setLevel(logging_level)
+    logger = logging.getLogger('py.warnings')
+    logger.setLevel(logging_level)
+    logger = logging.getLogger('readability')
+    logger.setLevel(logging_level)
+    logger = logging.getLogger('ddgsearch')
+    logger.setLevel(logging_level)
+    logger = logging.getLogger('urllib3')
+    logger.setLevel(logging_level)
+    logger = logging.getLogger('openai')
+    logger.setLevel(logging_level)
 
 def extract_useful_information_from_single_chunk(url, title, text, ix, q=None):
     '''
@@ -63,19 +89,19 @@ def extract_useful_information_from_single_chunk(url, title, text, ix, q=None):
     logger.info(f"extracting useful information from chunk {ix}, title: {title}")
 
     prompt = f"""
-Here is a url: {url}
-Here is its title: {title}
-Here is some text extracted from the webpage by bs4:
----------
-{text}
----------
+    Here is a url: {url}
+    Here is its title: {title}
+    Here is some text extracted from the webpage by bs4:
+    ---------
+    {text}
+    ---------
 
-Web pages can have a lot of useless junk in them. For example, there might be a lot of ads, or a lot of navigation links,
-or a lot of text that is not relevant to the topic of the page. We want to extract only the useful information from the text.
+    Web pages can have a lot of useless junk in them. For example, there might be a lot of ads, or a lot of navigation links,
+    or a lot of text that is not relevant to the topic of the page. We want to extract only the useful information from the text.
 
-You can use the url and title to help you understand the context of the text.
-Please extract only the useful information from the text. Try not to rewrite the text, but instead extract only the useful information from the text.
-"""
+    You can use the url and title to help you understand the context of the text.
+    Please extract only the useful information from the text. Try not to rewrite the text, but instead extract only the useful information from the text.
+    """
 
     response = client.chat.completions.create(
         model="gpt-3.5-turbo-1106",
@@ -96,7 +122,6 @@ Please extract only the useful information from the text. Try not to rewrite the
         ],
 
     )
-    print(response)
     if q:
         q.put((ix, response.choices[0].message.content))
     logger.info(f"DONE extracting useful information from chunk {ix}, title: {title}")
@@ -194,82 +219,6 @@ def remove_duplicate_empty_lines(input_text):
 
     return '\n'.join(fixed_lines)
 
-
-class MySpider(scrapy.Spider):
-    '''
-    This is the spider that will be used to crawl the webpages. We give this to the scrapy crawler.
-    '''
-    name = 'myspider'
-    start_urls = None
-    clean_with_llm = False
-    results = []
-
-    def __init__(self, start_urls, clean_with_llm, *args, **kwargs):
-        super(MySpider, self).__init__(*args, **kwargs)
-        self.start_urls = start_urls
-        self.clean_with_llm = clean_with_llm
-
-    def start_requests(self):
-        for url in self.start_urls:
-            yield scrapy.Request(url, callback=self.parse)
-
-    def parse(self, response):
-        logger = logging.getLogger('ddgsearch')
-        logger.info(f"***Parsing {response.url}...")
-
-        body_html = response.body.decode('utf-8')
-
-        url = response.url
-
-        soup = bs4.BeautifulSoup(body_html, 'html.parser')
-        title = soup.title.string
-        text = soup.get_text()
-        text = remove_duplicate_empty_lines(text)
-
-        if self.clean_with_llm:
-            useful_text = extract_useful_information(url, title, text, 50)
-        else:
-            useful_text = readability(body_html)
-        useful_text = remove_duplicate_empty_lines(useful_text)
-
-        self.results.append({
-            'url': url,
-            'title': title,
-            'text': text,
-            'useful_text': useful_text
-        })
-
-def setloglevel(loglevel):
-    # this function sets the log level for the script
-    if loglevel == 'DEBUG':
-        logging_level = logging.DEBUG
-    elif loglevel == 'INFO':
-        logging_level = logging.INFO
-    elif loglevel == 'WARNING':
-        logging_level = logging.WARNING
-    elif loglevel == 'ERROR':
-        logging_level = logging.ERROR
-    elif loglevel == 'CRITICAL':
-        logging_level = logging.CRITICAL
-    else:
-        logging_level = logging.INFO
-
-    # surely there is a better way to do this?
-    logger = logging.getLogger('scrapy')
-    logger.setLevel(logging_level)
-    logger = logging.getLogger('filelock')
-    logger.setLevel(logging_level)
-    logger = logging.getLogger('py.warnings')
-    logger.setLevel(logging_level)
-    logger = logging.getLogger('readability')
-    logger.setLevel(logging_level)
-    logger = logging.getLogger('ddgsearch')
-    logger.setLevel(logging_level)
-    logger = logging.getLogger('urllib3')
-    logger.setLevel(logging_level)
-    logger = logging.getLogger('openai')
-    logger.setLevel(logging_level)
-
 @crochet.run_in_reactor
 def run_spider(url_list, clean_with_llm):
     crawler = CrawlerRunner()
@@ -312,10 +261,6 @@ def ddgsearch(query, numresults=10, clean_with_llm=False, loglevel='ERROR'):
         raise Exception("The scraping operation timed out.")
 
     return MySpider.results
-
-from flask import Flask, jsonify, request
-
-app = Flask(__name__)
 
 @app.route('/search', methods=['GET'])
 def get_ddgsearch():
