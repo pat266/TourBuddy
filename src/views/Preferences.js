@@ -7,6 +7,7 @@ import Button from '../components/Button';
 import { theme } from '../core/theme';
 import InterestSelection from '../components/InterestSelection';
 
+
 export default function InterestsScreen({ navigation }) {
   const [selectedInterests, setSelectedInterests] = useState([]);
   const [preferredDistance, setPreferredDistance] = useState('');
@@ -14,7 +15,7 @@ export default function InterestsScreen({ navigation }) {
 
   const onNextPressed = () => {
     // Handle the logic for moving to the next screen here and pass the selected interests
-    navigation.navigate('HomeScreen', {
+    navigation.navigate('NearbyPlaces', {
       selectedInterests,
       preferredDistance,
       preferredCost,
@@ -38,17 +39,10 @@ export default function InterestsScreen({ navigation }) {
         onPress={onNextPressed}
         style={styles.button}
       >
-        Next
+        Update
       </Button>
 
-      <View style={styles.text}>
-        <Text>Already have an account?</Text>
-      </View>
-      <View style={styles.row}>
-        <TouchableOpacity onPress={() => navigation.replace('Login')}>
-          <Text style={styles.link}>Log in</Text>
-        </TouchableOpacity>
-      </View>
+      
     </Background>
   );
 }
@@ -56,14 +50,11 @@ export default function InterestsScreen({ navigation }) {
 const styles = StyleSheet.create({
   button: {
     marginTop: 8, 
-  },
-  text: {
-    marginTop: 2,
+    marginBottom: 80,
   },
   row: {
     flexDirection: 'row',
-    marginTop: 2,
-    marginBottom: 40,
+    marginTop: 4,
   },
   link: {
     color: theme.colors.primary,
