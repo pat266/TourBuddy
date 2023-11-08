@@ -2,13 +2,17 @@ import React, { Component } from 'react';
 import Background from '../components/Background'
 import Logo from '../components/Logo'
 import BackButton from '../components/BackButton'
+import PreferencesButton from '../components/PreferenceButton';
 import { GoBackButtonStyles } from '../components/BackButton';
+import { PreferenceButtonStyles} from '../components/PreferenceButton';
 import { View, Text, Button, Alert, Linking, TouchableOpacity } from 'react-native';
 import MapView, { Marker, Callout, PROVIDER_GOOGLE } from 'react-native-maps';
 import * as Location from 'expo-location';
 import axios from 'axios';
 import { GOOGLE_MAPS_API_KEY } from "@env";
 import { CalloutStyles, LightGoogleMapsStyle } from '../core/styles';
+import { theme } from '../core/theme'
+import { getStatusBarHeight } from 'react-native-status-bar-height'
 
 export default class NearbyPlaces extends Component{
 
@@ -110,24 +114,32 @@ export default class NearbyPlaces extends Component{
     if (!region) {
       return (
         <Background>
-          <BackButton goBack={this.goBack} />
           <Logo />
-          <Text>Loading the Google Maps ...</Text>
+          <Text>Getting Reccomendations ...</Text>
         </Background>
-        
       );
     }
     return (
-      <View style={{ flex: 1 }}>
-        <MapView style={{ flex: 1 }} region={region} customMapStyle={LightGoogleMapsStyle} provider={PROVIDER_GOOGLE} cacheEnabled={true} loadingEnabled={true} liteMode={true}>
+      <View style={{ flex: 1, paddingVertical: 5 + getStatusBarHeight(),}}>
+        <View style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', }}>
+          <BackButton goBack={this.goBack} />
+          <PreferencesButton onPress={this.handlePreferencesPress} />
+        </View>
+
+        <MapView
+          style={{ flex: 1 }}
+          region={region}
+          customMapStyle={LightGoogleMapsStyle}
+          provider={PROVIDER_GOOGLE}
+          cacheEnabled={true}
+          loadingEnabled={true}
+          liteMode={true}
+        >
           <Marker coordinate={region} />
           {places.map(place => (
             <MemoizedMarker key={place.id} place={place} />
           ))}
         </MapView>
-        <View style={GoBackButtonStyles.container}>
-          <BackButton goBack={this.goBack} />
-        </View>
         <View style={{ backgroundColor: 'white' }}>
           <Text>ETA Filter:</Text>
           <Button title="10 min" onPress={this.handleTenMinPress} />
