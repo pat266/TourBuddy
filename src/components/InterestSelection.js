@@ -1,29 +1,57 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, TextInput } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, TextInput, ScrollView } from 'react-native';
 import Slider from '@react-native-community/slider';
 import Checkbox from 'expo-checkbox';
 
 const InterestSelection = ({ selectedInterests, onInterestChange, preferredDistance, onDistanceChange, preferredCost, onCostChange }) => {
-  // Define an array of interests
+  // Define an array of interests with sub-interests
   const interests = [
-    'Sports',
-    'Art and Culture',
-    'History',
-    'Food and Dining',
-    'Nature and Outdoors',
-    'Music',
-    'Technology',
-    'Shopping',
-    'Movies and Entertainment'
-  ];
+  {
+    name: 'Sports',
+    subInterests: ['Football', 'Basketball', 'Tennis', 'Golf'],
+  },
+  {
+    name: 'Art and Culture',
+    subInterests: ['Museum', 'Painting', 'Sculpture', 'Gallery'],
+  },
+  {
+    name: 'History',
+    subInterests: ['Ancient History', 'Modern History', 'Archaeology'],
+  },
+  {
+    name: 'Food and Dining',
+    subInterests: ['Fine Dining', 'Street Food', 'Vegetarian', 'Italian'],
+  },
+  {
+    name: 'Nature and Outdoors',
+    subInterests: ['Hiking', 'Camping', 'Wildlife', 'Beaches'],
+  },
+  {
+    name: 'Music',
+    subInterests: ['Rock', 'Jazz', 'Classical', 'Hip-Hop'],
+  },
+  {
+    name: 'Technology',
+    subInterests: ['Gadgets', 'Programming', 'AI', 'Mobile Apps'],
+  },
+  {
+    name: 'Shopping',
+    subInterests: ['Fashion', 'Electronics', 'Antiques', 'Local Markets'],
+  },
+  {
+    name: 'Movies and Entertainment',
+    subInterests: ['Action', 'Comedy', 'Drama', 'Science Fiction'],
+  },
+];
 
-  const [preferredPrice, setpreferredPrice] = useState(3);
+
+  const [preferredPrice, setPreferredPrice] = useState(3);
 
   const onPriceChange = (value) => {
-    setpreferredPrice(value);
+    setPreferredPrice(value);
   };
 
-  // Function to toggle the selected interests
+  // Function to toggle the selected interests and sub-interests
   const toggleInterest = (interest) => {
     if (selectedInterests.includes(interest)) {
       onInterestChange(selectedInterests.filter(item => item !== interest));
@@ -33,20 +61,36 @@ const InterestSelection = ({ selectedInterests, onInterestChange, preferredDista
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.scrollContainer}><View style={styles.container}>
       <Text style={styles.label}>Select Your Interests:</Text>
-      {interests.map((interest, index) => (
-        <TouchableOpacity
-          key={index}
-          style={styles.interestContainer}
-          onPress={() => toggleInterest(interest)}
-        >
-          <Checkbox
-            value={selectedInterests.includes(interest)}
-            onValueChange={() => toggleInterest(interest)}
-          />
-          <Text style={styles.interestText}>{interest}</Text>
-        </TouchableOpacity>
+      {interests.map((mainInterest, index) => (
+        <View key={index}>
+          <TouchableOpacity
+            style={styles.interestContainer}
+            onPress={() => toggleInterest(mainInterest.name)}
+          >
+            <Checkbox
+              value={selectedInterests.includes(mainInterest.name)}
+              onValueChange={() => toggleInterest(mainInterest.name)}
+            />
+            <Text style={styles.interestText}>{mainInterest.name}</Text>
+          </TouchableOpacity>
+          {selectedInterests.includes(mainInterest.name) && (
+            mainInterest.subInterests.map((subInterest, subIndex) => (
+              <TouchableOpacity
+                key={subIndex}
+                style={styles.subInterestContainer}
+                onPress={() => toggleInterest(subInterest)}
+              >
+                <Checkbox
+                  value={selectedInterests.includes(subInterest)}
+                  onValueChange={() => toggleInterest(subInterest)}
+                />
+                <Text style={styles.subInterestText}>{subInterest}</Text>
+              </TouchableOpacity>
+            ))
+          )}
+        </View>
       ))}
 
       <Text style={styles.label}>Preferred Time Travel (in minutes):</Text>
@@ -59,7 +103,9 @@ const InterestSelection = ({ selectedInterests, onInterestChange, preferredDista
       />
 
       <Text style={styles.label}>Preferred Cost (1-5):</Text>
-      <Text style={styles.sliderValue}>{preferredPrice}</Text>
+      <View style={styles.sliderValueContainer}>
+        <Text style={styles.sliderValue}>{preferredPrice}</Text>
+      </View>
       <Slider
         value={preferredPrice}
         onValueChange={onPriceChange}
@@ -72,6 +118,7 @@ const InterestSelection = ({ selectedInterests, onInterestChange, preferredDista
         maximumTrackTintColor="#ccc"
       />
     </View>
+  </ScrollView>
   );
 };
 
@@ -92,6 +139,16 @@ const styles = StyleSheet.create({
     marginLeft: 8,
     fontSize: 16,
   },
+  subInterestContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+    marginLeft: 24, // Adjust the indentation as needed
+  },
+  subInterestText: {
+    marginLeft: 8,
+    fontSize: 14,
+  },
   input: {
     height: 40,
     borderColor: 'gray',
@@ -99,13 +156,23 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     paddingLeft: 10,
   },
-  slider: {
-    marginBottom: 20,
+  fullWidthSlider: {
+    width: '100%',  
   },
   sliderValue: {
     fontSize: 16,
     fontWeight: 'bold',
     textAlign: 'center',
+  },
+  sliderValueContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  sliderValue: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#f9a825',
   },
 });
 
