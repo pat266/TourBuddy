@@ -151,7 +151,7 @@ class SearchService:
             [
                 {
                     "role": "system",
-                    "content": "You are a helpful assistant for text summarization.",
+                    "content": "You are a helpful assistant to help finding important information.",
                 },
                 {
                     "role": "user",
