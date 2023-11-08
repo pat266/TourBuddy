@@ -10,6 +10,7 @@ import {
   Interests,
   RegistrationForm,
   ResetPasswordScreen,
+  Preferences,
 } from './src/views'
 
 
@@ -34,6 +35,7 @@ export default function App() {
             name="ResetPasswordScreen"
             component={ResetPasswordScreen}
           />
+          <Stack.Screen name="Preferences" component={Preferences} />
         </Stack.Navigator>
       </NavigationContainer>
     </Provider>

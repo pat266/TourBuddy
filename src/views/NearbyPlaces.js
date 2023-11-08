@@ -107,6 +107,11 @@ export default class NearbyPlaces extends Component{
       this.props.navigation.navigate('HomeScreen');
     }
   }
+
+  handlePreferencesPress = () => {
+    this.props.navigation.navigate('Preferences');
+  }
+
   
 
   render() {

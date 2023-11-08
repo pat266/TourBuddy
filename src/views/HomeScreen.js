@@ -23,7 +23,7 @@ export default class RegistrationForm extends React.Component {
   render() {
     return (
       <Background>
-        <BackButton goBack={this.goBack} />
+        
         <Logo />
         <Text style={RegistrationFormStyles.Header}>Successfully Logged In!</Text>
         <TouchableOpacity style={RegistrationFormStyles.submit} onPress={() => this.props.navigation.navigate('NearbyPlaces')}>

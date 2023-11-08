@@ -41,7 +41,7 @@ export default function InterestsScreen({ navigation }) {
         Next
       </Button>
 
-      <View style={styles.row}>
+      <View style={styles.text}>
         <Text>Already have an account?</Text>
       </View>
       <View style={styles.row}>
@@ -57,9 +57,13 @@ const styles = StyleSheet.create({
   button: {
     marginTop: 8, 
   },
+  text: {
+    marginTop: 2,
+  },
   row: {
     flexDirection: 'row',
-    marginTop: 4,
+    marginTop: 2,
+    marginBottom: 40,
   },
   link: {
     color: theme.colors.primary,
