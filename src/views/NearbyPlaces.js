@@ -7,12 +7,16 @@ import { GoBackButtonStyles } from '../components/BackButton';
 import { PreferenceButtonStyles} from '../components/PreferenceButton';
 import { View, Text, Button, Alert, Linking, TouchableOpacity } from 'react-native';
 import MapView, { Marker, Callout, PROVIDER_GOOGLE } from 'react-native-maps';
+import Modal from 'react-native-modal'; 
 import * as Location from 'expo-location';
 import axios from 'axios';
 import { GOOGLE_MAPS_API_KEY } from "@env";
 import { CalloutStyles, LightGoogleMapsStyle } from '../core/styles';
-import { theme } from '../core/theme'
-import { getStatusBarHeight } from 'react-native-status-bar-height'
+import { theme } from '../core/theme';
+import { getStatusBarHeight } from 'react-native-status-bar-height';
+import { PanGestureHandler, State } from 'react-native-gesture-handler';
+import TextInput from '../components/TextInput';
+
 
 export default class NearbyPlaces extends Component{
 
@@ -22,10 +26,10 @@ export default class NearbyPlaces extends Component{
       region: null,
       places: [],
       etaFilter: 3000,
+      isModalVisible: false,
+      userInput: '',
     };
-    this.handleTenMinPress = this.handleEtaFilterChange.bind(this, 3000);
-    this.handleTwentyMinPress = this.handleEtaFilterChange.bind(this, 6000);
-    this.handleThirtyMinPress = this.handleEtaFilterChange.bind(this, 9000);
+
   }
 
   componentDidMount() {
@@ -56,6 +60,27 @@ export default class NearbyPlaces extends Component{
       Alert.alert('Error', 'Failed to get location. Please try again.');
     }
   };
+
+  toggleModal = () => {
+    this.setState({ isModalVisible: !this.state.isModalVisible });
+  };
+
+  askChat = () => {
+    
+    const userInput = this.state.userInput; 
+
+    this.setState({ userInput: '' });
+  
+    console.log('User input:', userInput);
+  
+    const results = "This is the result from askChat function.";
+    return results;
+    
+    // Close the modal after handling the user's input
+    //this.toggleModal();
+  };
+  
+  
 
   getNearbyPlaces = async (latitude, longitude, textQuery) => {
     const { etaFilter } = this.state;
@@ -92,13 +117,6 @@ export default class NearbyPlaces extends Component{
     this.setState({ places: restaurants.concat(attractions) });
   }
 
-  handleEtaFilterChange = async (etaFilter) => {
-    this.setState({ etaFilter }, async () => {
-      const { region } = this.state;
-      this.setNearbyPlaces(region.latitude, region.longitude);
-      // console.log('ETA Filter changed to:', etaFilter);
-    });
-  };
 
   goBack = () => {
     if (this.props.navigation.canGoBack()) {
@@ -115,7 +133,8 @@ export default class NearbyPlaces extends Component{
   
 
   render() {
-    const { region, places } = this.state;
+    const { region, places, isModalVisible } = this.state;
+
     if (!region) {
       return (
         <Background>
@@ -125,12 +144,18 @@ export default class NearbyPlaces extends Component{
       );
     }
     return (
-      <View style={{ flex: 1, paddingVertical: 5 + getStatusBarHeight(),}}>
-        <View style={{ flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', }}>
+      <View style={{ flex: 1, paddingVertical: 5 + getStatusBarHeight() }}>
+        <View
+          style={{
+            flexDirection: 'row',
+            justifyContent: 'flex-start',
+            alignItems: 'center',
+          }}
+        >
           <BackButton goBack={this.goBack} />
           <PreferencesButton onPress={this.handlePreferencesPress} />
         </View>
-
+  
         <MapView
           style={{ flex: 1 }}
           region={region}
@@ -145,12 +170,91 @@ export default class NearbyPlaces extends Component{
             <MemoizedMarker key={place.id} place={place} />
           ))}
         </MapView>
-        <View style={{ backgroundColor: 'white' }}>
-          <Text>ETA Filter:</Text>
-          <Button title="10 min" onPress={this.handleTenMinPress} />
-          <Button title="20 min" onPress={this.handleTwentyMinPress} />
-          <Button title="30 min" onPress={this.handleThirtyMinPress} />
-        </View>
+
+        
+
+
+        <TouchableOpacity
+          onPress={this.toggleModal} // Toggle the modal when the button is pressed
+          style={{
+            backgroundColor: 'teal',
+            padding: 10,
+            alignItems: 'center',
+            width: '40%',
+            borderRadius: 5, // Add rounded corners
+            alignSelf: 'center', // Center the button horizontally
+            marginTop: 10, // Add top margin for separation
+          }}
+        >
+          <Text style={{ color: 'white', fontSize: 16 }}>Ask Chat</Text>
+        </TouchableOpacity>
+
+  
+        <Modal
+          isVisible={this.state.isModalVisible}
+          onBackdropPress={this.toggleModal} // Close the modal when the backdrop is pressed
+          style={{
+            backgroundColor: 'transparent', // Set background to transparent
+            padding: 0, // No extra padding
+            margin: 0, // No margin
+            alignItems: 'center',
+          }}
+        >
+          <View style={{
+            backgroundColor: 'white',
+            padding: 20,
+            borderRadius: 10, // Add rounded corners to the child View
+            maxHeight: '80%', // Set the maximum height of the child View
+          }}>
+            <Text>Ask Chat About The Places Around You!</Text>
+
+
+
+
+            <TextInput
+              placeholder="Ask your question or enter your message"
+              value={this.state.userInput}
+              onChangeText={(text) => this.setState({ userInput: text })}
+              style={{
+                borderWidth: 1,
+                padding: 10,
+                marginBottom: 10,
+                borderRadius: 5, // Add rounded corners to the input field
+              }}
+            />
+
+            <Button
+              title="Submit"
+              onPress={this.askChat}
+              style={{
+                backgroundColor: 'teal',
+                padding: 10,
+                width: '40%',
+                borderRadius: 5,
+                alignSelf: 'center',
+                marginTop: 10,
+              }}
+            >
+              <Text style={{ color: 'white', fontSize: 16 }}>Submit</Text>
+            </Button>
+            <Button
+              title="Close"
+              onPress={this.toggleModal}
+              style={{
+                backgroundColor: 'teal',
+                padding: 10,
+                width: '40%',
+                borderRadius: 5,
+                alignSelf: 'center',
+                marginTop: 10,
+              }}
+            >
+              <Text style={{ color: 'white', fontSize: 16 }}>Close</Text>
+            </Button>
+          </View>
+        </Modal>
+
+
       </View>
     );
   }

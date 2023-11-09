@@ -94,7 +94,7 @@ const InterestSelection = ({ selectedInterests, onInterestChange, preferredDista
             </View>
           ))}
 
-          <Text style={styles.label}>Preferred Time Travel (in minutes):</Text>
+          <Text style={styles.label}>Maximum ETA (in minutes):</Text>
           <TextInput
             value={preferredDistance}
             onChangeText={onDistanceChange}

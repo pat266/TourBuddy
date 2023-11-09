@@ -15,10 +15,10 @@ export default function PreferencesButton({ mode, style, onPress, ...props }) {
       ]}
       labelStyle={PreferenceButtonStyles.text}
       mode={mode}
-      onPress={onPress} // Pass the onPress prop to the underlying PaperButton
+      onPress={onPress} 
       {...props}
     >
-      <Icon name="cog" size={30} color="black" style={PreferenceButtonStyles.icon} />
+      <Icon name="cog" size={20} color="black" style={PreferenceButtonStyles.icon} />
     </PaperButton>
   );
 }

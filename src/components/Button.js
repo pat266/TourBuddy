@@ -18,11 +18,16 @@ export default function Button({ mode, style, ...props }) {
   )
 }
 
+
 const styles = StyleSheet.create({
   button: {
-    width: '70%',
-    marginVertical: 2,
-    paddingVertical: 2,
+    backgroundColor: 'teal',
+    padding: 10,
+    alignItems: 'center',
+    width: '40%',
+    borderRadius: 5, 
+    alignSelf: 'center',
+    marginTop: 10,
   },
   text: {
     fontWeight: 'bold',
