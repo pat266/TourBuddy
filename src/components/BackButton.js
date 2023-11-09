@@ -20,7 +20,7 @@ export default function PreferencesButton({ mode, goBack, style, onPress, ...pro
       {...props}
     >
 
-      <Icon name="arrow-left" size={30} color="black" style={PreferenceButtonStyles.icon} />
+      <Icon name="arrow-left" size={20} color="black" style={PreferenceButtonStyles.icon} />
     </PaperButton>
   );
 }
