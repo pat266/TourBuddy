@@ -93,32 +93,40 @@ export default class NearbyPlaces extends Component{
   
 
   getNearbyPlaces = async (latitude, longitude, textQuery) => {
-    const { etaFilter } = this.state;
-    const url = 'https://places.googleapis.com/v1/places:searchText';
-    const data = {
-      textQuery: textQuery,
-      maxResultCount: 10,
-      locationBias: {
-        circle: {
-          center: { latitude, longitude },
-          radius: etaFilter,
-        }
-      },
-    };
-    const headers = {
-      'Content-Type': 'application/json',
-      'X-Goog-Api-Key': GOOGLE_MAPS_API_KEY,
-      'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.location,places.currentOpeningHours,places.editorialSummary,places.priceLevel,places.rating,places.userRatingCount,places.websiteUri,places.types',
-    };
-  
     try {
-      const response = await axios.post(url, data, { headers });
-      // console.log(response.data.places);
-      return response.data.places;
+      // try a new approach
+
+      throw new Error('Method not completely implemented yet.');
     } catch (error) {
-      Alert.alert('Error', 'Failed to get nearby places. Please try again.');
-      console.error('getNearbyPlaces: ', error);
+      // if the new approach does not work for any reason, then try the old approach
+      const { etaFilter } = this.state;
+      const url = 'https://places.googleapis.com/v1/places:searchText';
+      const data = {
+        textQuery: textQuery,
+        maxResultCount: 10,
+        locationBias: {
+          circle: {
+            center: { latitude, longitude },
+            radius: etaFilter,
+          }
+        },
+      };
+      const headers = {
+        'Content-Type': 'application/json',
+        'X-Goog-Api-Key': GOOGLE_MAPS_API_KEY,
+        'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.location,places.currentOpeningHours,places.editorialSummary,places.priceLevel,places.rating,places.userRatingCount,places.websiteUri,places.types',
+      };
+    
+      try {
+        const response = await axios.post(url, data, { headers });
+        // console.log(response.data.places);
+        return response.data.places;
+      } catch (error) {
+        Alert.alert('Error', 'Failed to get nearby places. Please try again.');
+        console.error('getNearbyPlaces: ', error);
+      }
     }
+
   };
   
   setNearbyPlaces = async(latitude, longitude) => {
