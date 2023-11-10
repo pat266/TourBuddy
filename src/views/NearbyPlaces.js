@@ -174,18 +174,29 @@ export default class NearbyPlaces extends Component{
         </MapView>
 
         {this.state.selectedPlace && (
-          <BottomSheet 
-            hasDraggableIcon 
+          <BottomSheet  
             ref={this.bottomSheetRef} 
             height={maxHeight}
             draggable={false}
           >
-            <ScrollView>
-              <Text style={{ fontSize: 20, fontWeight: 'bold' }}>{this.state.selectedPlace.title}</Text>
-              <Text style={{ fontSize: 16, color: 'gray' }}>Type: {this.state.selectedPlace.preference}</Text>
-              <Text style={{ fontSize: 16, color: 'gray' }}>Address: {this.state.selectedPlace.address}</Text>
-              <Text style={{ fontSize: 16, color: 'gray' }}>Phone: {this.state.selectedPlace.phone}</Text>
-              <Text style={{ fontSize: 16, color: 'black' }}>Description: {this.state.selectedPlace.generated_info}</Text>
+            <ScrollView contentContainerStyle={{ padding: 20 }}>
+              <Text style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 10 }}>{this.state.selectedPlace.title}</Text>
+              <Text style={{ fontSize: 16, color: 'gray', marginBottom: 5 }}>
+                <Text style={{ fontWeight: 'bold' }}>Type:</Text>
+                {this.state.selectedPlace.preference}
+              </Text>
+              <Text style={{ fontSize: 16, color: 'gray', marginBottom: 5 }}>
+                <Text style={{ color: 'black', fontWeight: 'bold' }}>Address: </Text>
+                {this.state.selectedPlace.address}
+              </Text>
+              <Text style={{ fontSize: 16, color: 'gray', marginBottom: 5 }}>
+                <Text style={{ color: 'black', fontWeight: 'bold' }}>Phone: </Text>
+                {this.state.selectedPlace.phone}
+              </Text>
+              <Text style={{ fontSize: 16, color: 'black', marginTop: 10, marginBottom: 5, lineHeight: 24 }}>
+                <Text style={{ color: 'black', fontWeight: 'bold' }}>Description: </Text>
+                {this.state.selectedPlace.generated_info}
+              </Text>
             </ScrollView>
           </BottomSheet>
         )}
