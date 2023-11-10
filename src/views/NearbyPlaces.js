@@ -5,16 +5,16 @@ import BackButton from '../components/BackButton'
 import PreferencesButton from '../components/PreferenceButton';
 import { GoBackButtonStyles } from '../components/BackButton';
 import { PreferenceButtonStyles} from '../components/PreferenceButton';
-import { View, Text, Button, Alert, Linking, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
+import { View, Text, Button, Alert, Linking, TouchableOpacity, Dimensions } from 'react-native';
 import MapView, { Marker, Callout, PROVIDER_GOOGLE } from 'react-native-maps';
 import Modal from 'react-native-modal'; 
 import * as Location from 'expo-location';
 import axios from 'axios';
 import { GOOGLE_MAPS_API_KEY } from "@env";
-import { CalloutStyles, LightGoogleMapsStyle } from '../core/styles';
+import { LightGoogleMapsStyle } from '../core/styles';
 import { theme } from '../core/theme';
 import { getStatusBarHeight } from 'react-native-status-bar-height';
-import { PanGestureHandler, State } from 'react-native-gesture-handler';
+import { PanGestureHandler, State, ScrollView } from 'react-native-gesture-handler';
 import TextInput from '../components/TextInput';
 import BottomSheet from 'react-native-gesture-bottom-sheet';
 
@@ -92,47 +92,28 @@ export default class NearbyPlaces extends Component{
   
   
 
-  getNearbyPlaces = async (latitude, longitude, textQuery) => {
+  getNearbyPlaces = async (latitude, longitude) => {
     try {
       // try a new approach
+      let radius = 5;
+      // Replace 'localhost' with your machine's IP address
+      const url = `https://pat266.pythonanywhere.com/recommended_places?latitude=${latitude}&longitude=${longitude}&radius=${radius}`;
+      const response = await axios.get(url);
 
-      throw new Error('Method not completely implemented yet.');
+      // console.log(response.data)
+
+      // Assuming the server returns a list of dictionaries
+      return response.data;
     } catch (error) {
-      // if the new approach does not work for any reason, then try the old approach
-      const { etaFilter } = this.state;
-      const url = 'https://places.googleapis.com/v1/places:searchText';
-      const data = {
-        textQuery: textQuery,
-        maxResultCount: 10,
-        locationBias: {
-          circle: {
-            center: { latitude, longitude },
-            radius: etaFilter,
-          }
-        },
-      };
-      const headers = {
-        'Content-Type': 'application/json',
-        'X-Goog-Api-Key': GOOGLE_MAPS_API_KEY,
-        'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.location,places.currentOpeningHours,places.editorialSummary,places.priceLevel,places.rating,places.userRatingCount,places.websiteUri,places.types',
-      };
-    
-      try {
-        const response = await axios.post(url, data, { headers });
-        // console.log(response.data.places);
-        return response.data.places;
-      } catch (error) {
-        Alert.alert('Error', 'Failed to get nearby places. Please try again.');
-        console.error('getNearbyPlaces: ', error);
-      }
+      Alert.alert('Error', 'Failed to get nearby places. Please try again.');
+      console.error('getNearbyPlaces: ', error);
     }
 
   };
   
   setNearbyPlaces = async(latitude, longitude) => {
-    const restaurants = await this.getNearbyPlaces(latitude, longitude, "restaurants");
-    const attractions = await this.getNearbyPlaces(latitude, longitude, "local attractions");
-    this.setState({ places: restaurants.concat(attractions) });
+    const places = await this.getNearbyPlaces(latitude, longitude);
+    this.setState({ places: places });
   }
 
 
@@ -197,18 +178,14 @@ export default class NearbyPlaces extends Component{
             hasDraggableIcon 
             ref={this.bottomSheetRef} 
             height={maxHeight}
+            draggable={false}
           >
             <ScrollView>
-              <View>
-                <Text style={CalloutStyles.calloutTitle}>{this.state.selectedPlace.displayName.text}</Text>
-                <Text style={CalloutStyles.calloutText}>Rating: {this.state.selectedPlace.rating} ({this.state.selectedPlace.userRatingCount} ratings)</Text>
-                {this.state.selectedPlace.editorialSummary && this.state.selectedPlace.editorialSummary.text && (
-                  <Text style={CalloutStyles.calloutText}>Description: {this.state.selectedPlace.editorialSummary.text}</Text>
-                )}
-                <TouchableOpacity onPress={() => Linking.openURL(this.state.selectedPlace.websiteUri)}>
-                  <Text style={CalloutStyles.calloutLink}>Website</Text>
-                </TouchableOpacity>
-              </View>
+              <Text style={{ fontSize: 20, fontWeight: 'bold' }}>{this.state.selectedPlace.title}</Text>
+              <Text style={{ fontSize: 16, color: 'gray' }}>Type: {this.state.selectedPlace.preference}</Text>
+              <Text style={{ fontSize: 16, color: 'gray' }}>Address: {this.state.selectedPlace.address}</Text>
+              <Text style={{ fontSize: 16, color: 'gray' }}>Phone: {this.state.selectedPlace.phone}</Text>
+              <Text style={{ fontSize: 16, color: 'black' }}>Description: {this.state.selectedPlace.generated_info}</Text>
             </ScrollView>
           </BottomSheet>
         )}
@@ -223,38 +200,33 @@ export default class NearbyPlaces extends Component{
 
 const MemoizedMarker = React.memo(function MemoizedMarker({ place, handleMarkerPress }) {
   const {
-    displayName,
-    formattedAddress,
-    location,
-    priceLevel,
-    rating,
-    userRatingCount,
-    websiteUri,
-    editorialSummary,
-    currentOpeningHours,
-    types,
+    title, // The name of the place
+    address,
+    latitude,
+    longitude,
+    phone,
+    preference, // types of places
   } = place;
 
-  const { text: placeName } = displayName;
-  const { latitude, longitude } = location;
-
-  let pinColor = 'blue';
-  if (types.includes('culture') || types.includes('education') || types.includes('entertainment') || types.includes('recreation')) {
-    pinColor = 'purple';
-  } else if (types.includes('food') || types.includes('drink')) {
-    pinColor = 'orange';
-  } else if (types.includes('geocode')) {
-    pinColor = 'black';
-  } else if (types.includes('health') || types.includes('wellness')) {
-    pinColor = 'pink';
-  } else if (types.includes('lodging')) {
-    pinColor = 'brown';
-  } else if (types.includes('services')) {
-    pinColor = 'teal';
-  } else if (types.includes('shopping')) {
-    pinColor = 'indigo';
-  } else if (types.includes('sports')) {
-    pinColor = 'maroon';
+  const preferenceColors = {
+    'sports': 'purple',
+    'art and culture': 'orange',
+    'museum and history': 'black',
+    'food and dining': 'pink',
+    'nature and outdoors': 'brown',
+    'music': 'teal',
+    'technology': 'indigo',
+    'shopping': 'maroon',
+    'movies and entertainment': 'green'
+  };
+  
+  let pinColor = 'blue'; // default color
+  // change the color based on the preference
+  for (let pref in preferenceColors) {
+    if (preference.includes(pref)) {
+      pinColor = preferenceColors[pref];
+      break;
+    }
   }
 
   return (

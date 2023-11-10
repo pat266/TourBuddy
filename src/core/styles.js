@@ -73,29 +73,6 @@ export const RegistrationFormStyles = StyleSheet.create({
     },
   });
 
-export const CalloutStyles = StyleSheet.create({
-  calloutContainer: {
-    width: 200,
-    padding: 10,
-    borderRadius: 10,
-    backgroundColor: 'white',
-  },
-  calloutTitle: {
-    fontWeight: 'bold',
-    fontSize: 16,
-    marginBottom: 5,
-  },
-  calloutText: {
-    fontSize: 14,
-    marginBottom: 5,
-  },
-  calloutLink: {
-    fontSize: 14,
-    color: 'blue',
-    textDecorationLine: 'underline',
-  },
-});
-
 export const LightGoogleMapsStyle = [
   {
     "elementType": "labels",
