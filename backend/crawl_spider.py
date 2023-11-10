@@ -3,7 +3,7 @@ from scrapy.crawler import CrawlerRunner
 from scrapy.settings import Settings
 from openai import OpenAI
 import bs4
-from util_extract_information_2 import *
+from util_extract_information import *
 from config import Config
 
 class MySpider(scrapy.Spider):

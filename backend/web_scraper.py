@@ -3,7 +3,7 @@ crochet.setup()
 
 from scrapy.crawler import CrawlerRunner
 from scrapy.settings import Settings
-from crawl_spider_2 import MySpider
+from crawl_spider import MySpider
 from duckduckgo_search import DDGS
 from openai import OpenAI
 from config import Config
