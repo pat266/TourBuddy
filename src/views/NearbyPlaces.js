@@ -146,8 +146,7 @@ export default class NearbyPlaces extends Component{
     const { region, places, isModalVisible } = this.state;
     // max height of the bottom sheet
     const maxHeight = Dimensions.get('window').height * 0.7;
-
-
+    
     if (!region) {
       return (
         <Background>
@@ -193,8 +192,14 @@ export default class NearbyPlaces extends Component{
           >
             <ScrollView>
               <View>
-                <Text>{this.state.selectedPlace.displayName.text}</Text>
-                {/* ... other information */}
+                <Text style={CalloutStyles.calloutTitle}>{this.state.selectedPlace.displayName.text}</Text>
+                <Text style={CalloutStyles.calloutText}>Rating: {this.state.selectedPlace.rating} ({this.state.selectedPlace.userRatingCount} ratings)</Text>
+                {this.state.selectedPlace.editorialSummary && this.state.selectedPlace.editorialSummary.text && (
+                  <Text style={CalloutStyles.calloutText}>Description: {this.state.selectedPlace.editorialSummary.text}</Text>
+                )}
+                <TouchableOpacity onPress={() => Linking.openURL(this.state.selectedPlace.websiteUri)}>
+                  <Text style={CalloutStyles.calloutLink}>Website</Text>
+                </TouchableOpacity>
               </View>
             </ScrollView>
           </BottomSheet>
@@ -256,20 +261,6 @@ const MemoizedMarker = React.memo(function MemoizedMarker({ place, handleMarkerP
         handleMarkerPress(place);
       }}
     >
-      <Callout>
-        <View style={CalloutStyles.calloutContainer}>
-          <Text style={CalloutStyles.calloutTitle}>{placeName}</Text>
-          <Text style={CalloutStyles.calloutText}>Rating: {rating} ({userRatingCount} ratings)</Text>
-          {editorialSummary && editorialSummary.text && (
-            <Text style={CalloutStyles.calloutText}>
-              Description: {editorialSummary.text}
-            </Text>
-          )}
-          <TouchableOpacity onPress={() => Linking.openURL(websiteUri)}>
-            <Text style={CalloutStyles.calloutLink}>Website</Text>
-          </TouchableOpacity>
-        </View>
-      </Callout>
     </Marker>
   );
 });
