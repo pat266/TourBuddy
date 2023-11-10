@@ -28,6 +28,7 @@ export default class NearbyPlaces extends Component{
       etaFilter: 3000,
       isModalVisible: false,
       userInput: '',
+      selectedPlace: null,
     };
 
   }
@@ -35,6 +36,13 @@ export default class NearbyPlaces extends Component{
   componentDidMount() {
     this.getLocationAsync();
   }
+
+
+  handleMarkerPress(place) {
+    this.setState({ selectedPlace: place });
+  }
+  
+
 
   getLocationAsync = async () => {
     try {
@@ -47,6 +55,7 @@ export default class NearbyPlaces extends Component{
       // const { latitude, longitude } = location.coords;
       const { latitude, longitude } = { latitude: 33.787037, longitude: -84.380527 };
       this.setNearbyPlaces(latitude, longitude);
+      this.panelRef = React.createRef();
       this.setState({
         region: {
           latitude,
@@ -55,7 +64,12 @@ export default class NearbyPlaces extends Component{
           longitudeDelta: 0.01,
         },
       });
-      this.panelRef = React.createRef();
+
+      // Bind the method to the class instance
+      this.handleMarkerPress = this.handleMarkerPress.bind(this);
+
+
+
     } catch (error) {
       console.log("getLocationAsycn: ", error);
       Alert.alert('Error', 'Failed to get location. Please try again.');
@@ -170,23 +184,31 @@ export default class NearbyPlaces extends Component{
         >
           <Marker coordinate={region} />
           {places.map(place => (
-            <MemoizedMarker key={place.id} place={place} />
+            <MemoizedMarker key={place.id} place={place} handleMarkerPress={this.handleMarkerPress} />
           ))}
         </MapView>
 
         <BottomSheet isOpen ref={this.panelRef}>
-          {(onScrollEndDrag) => (
-            <ScrollView onScrollEndDrag={onScrollEndDrag}>
-              <Text>Hello Pat</Text>
-            </ScrollView>
-          )}
+          <ScrollView>
+            <View>
+              {this.state.selectedPlace && (
+                <View>
+                  <Text>{this.state.selectedPlace.displayName.text}</Text>
+                </View>
+              )}
+            </View>
+          </ScrollView>
         </BottomSheet>
+
+
+
+
       </View>
     );
   }
 }
 
-const MemoizedMarker = React.memo(function MemoizedMarker({ place }) {
+const MemoizedMarker = React.memo(function MemoizedMarker({ place, handleMarkerPress }) {
   const {
     displayName,
     formattedAddress,
@@ -229,12 +251,11 @@ const MemoizedMarker = React.memo(function MemoizedMarker({ place }) {
         longitude,
       }}
       pinColor={pinColor}
+      onPress={() => handleMarkerPress(place)}
     >
       <Callout>
         <View style={CalloutStyles.calloutContainer}>
           <Text style={CalloutStyles.calloutTitle}>{placeName}</Text>
-          {/*<Text style={CalloutStyles.calloutText}>Address: {formattedAddress}</Text>
-          {priceLevel && <Text style={CalloutStyles.calloutText}>Price Level: {priceLevel}</Text>}*/}
           <Text style={CalloutStyles.calloutText}>Rating: {rating} ({userRatingCount} ratings)</Text>
           {editorialSummary && editorialSummary.text && (
             <Text style={CalloutStyles.calloutText}>
