@@ -22,6 +22,7 @@ export default class NearbyPlaces extends Component{
 
   constructor(props) {
     super(props);
+    this.panelRef = React.createRef();
     this.state = {
       region: null,
       places: [],
@@ -181,6 +182,7 @@ export default class NearbyPlaces extends Component{
           cacheEnabled={true}
           loadingEnabled={true}
           liteMode={true}
+          onPress={() => this.setState({ selectedPlace: null })}
         >
           <Marker coordinate={region} />
           {places.map(place => (
@@ -188,17 +190,16 @@ export default class NearbyPlaces extends Component{
           ))}
         </MapView>
 
-        <BottomSheet isOpen ref={this.panelRef}>
-          <ScrollView>
-            <View>
-              {this.state.selectedPlace && (
-                <View>
-                  <Text>{this.state.selectedPlace.displayName.text}</Text>
-                </View>
-              )}
-            </View>
-          </ScrollView>
-        </BottomSheet>
+        {this.state.selectedPlace && (
+          <BottomSheet isOpen ref={this.panelRef}>
+            <ScrollView>
+              <View>
+                <Text>{this.state.selectedPlace.displayName.text}</Text>
+                {/* ... other information */}
+              </View>
+            </ScrollView>
+          </BottomSheet>
+        )}
 
 
 
@@ -251,7 +252,10 @@ const MemoizedMarker = React.memo(function MemoizedMarker({ place, handleMarkerP
         longitude,
       }}
       pinColor={pinColor}
-      onPress={() => handleMarkerPress(place)}
+      onPress={(event) => {
+        event.stopPropagation(); // Prevents the event from bubbling up to the map
+        handleMarkerPress(place);
+      }}
     >
       <Callout>
         <View style={CalloutStyles.calloutContainer}>
