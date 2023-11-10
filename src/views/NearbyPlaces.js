@@ -5,7 +5,7 @@ import BackButton from '../components/BackButton'
 import PreferencesButton from '../components/PreferenceButton';
 import { GoBackButtonStyles } from '../components/BackButton';
 import { PreferenceButtonStyles} from '../components/PreferenceButton';
-import { View, Text, Button, Alert, Linking, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, Button, Alert, Linking, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
 import MapView, { Marker, Callout, PROVIDER_GOOGLE } from 'react-native-maps';
 import Modal from 'react-native-modal'; 
 import * as Location from 'expo-location';
@@ -16,13 +16,13 @@ import { theme } from '../core/theme';
 import { getStatusBarHeight } from 'react-native-status-bar-height';
 import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import TextInput from '../components/TextInput';
-import BottomSheet from 'react-native-simple-bottom-sheet';
+import BottomSheet from 'react-native-gesture-bottom-sheet';
 
 export default class NearbyPlaces extends Component{
 
   constructor(props) {
     super(props);
-    this.panelRef = React.createRef();
+    this.bottomSheetRef = React.createRef();
     this.state = {
       region: null,
       places: [],
@@ -31,7 +31,8 @@ export default class NearbyPlaces extends Component{
       userInput: '',
       selectedPlace: null,
     };
-
+    // Bind the method to the class instance
+    this.handleMarkerPress = this.handleMarkerPress.bind(this);
   }
 
   componentDidMount() {
@@ -40,7 +41,9 @@ export default class NearbyPlaces extends Component{
 
 
   handleMarkerPress(place) {
-    this.setState({ selectedPlace: place });
+    this.setState({ selectedPlace: place }, () => {
+      this.bottomSheetRef.current.show();
+    });
   }
   
 
@@ -56,7 +59,6 @@ export default class NearbyPlaces extends Component{
       // const { latitude, longitude } = location.coords;
       const { latitude, longitude } = { latitude: 33.787037, longitude: -84.380527 };
       this.setNearbyPlaces(latitude, longitude);
-      this.panelRef = React.createRef();
       this.setState({
         region: {
           latitude,
@@ -65,11 +67,6 @@ export default class NearbyPlaces extends Component{
           longitudeDelta: 0.01,
         },
       });
-
-      // Bind the method to the class instance
-      this.handleMarkerPress = this.handleMarkerPress.bind(this);
-
-
 
     } catch (error) {
       console.log("getLocationAsycn: ", error);
@@ -147,7 +144,8 @@ export default class NearbyPlaces extends Component{
 
   render() {
     const { region, places, isModalVisible } = this.state;
-
+    // max height of the bottom sheet
+    const maxHeight = Dimensions.get('window').height * 0.7;
 
 
     if (!region) {
@@ -169,9 +167,6 @@ export default class NearbyPlaces extends Component{
         >
           <BackButton goBack={this.goBack} />
           <PreferencesButton onPress={this.handlePreferencesPress} />
-          <TouchableOpacity onPress={() => this.panelRef.current.togglePanel()}>
-          <Text>Toggle</Text>
-          </TouchableOpacity>
         </View>
   
         <MapView
@@ -191,7 +186,11 @@ export default class NearbyPlaces extends Component{
         </MapView>
 
         {this.state.selectedPlace && (
-          <BottomSheet isOpen ref={this.panelRef}>
+          <BottomSheet 
+            hasDraggableIcon 
+            ref={this.bottomSheetRef} 
+            height={maxHeight}
+          >
             <ScrollView>
               <View>
                 <Text>{this.state.selectedPlace.displayName.text}</Text>
