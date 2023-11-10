@@ -95,7 +95,7 @@ export default class NearbyPlaces extends Component{
   getNearbyPlaces = async (latitude, longitude) => {
     try {
       // try a new approach
-      let radius = 5;
+      let radius = 3;
       // Replace 'localhost' with your machine's IP address
       const url = `https://pat266.pythonanywhere.com/recommended_places?latitude=${latitude}&longitude=${longitude}&radius=${radius}`;
       const response = await axios.get(url);
@@ -182,7 +182,7 @@ export default class NearbyPlaces extends Component{
             <ScrollView contentContainerStyle={{ padding: 20 }}>
               <Text style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 10 }}>{this.state.selectedPlace.title}</Text>
               <Text style={{ fontSize: 16, color: 'gray', marginBottom: 5 }}>
-                <Text style={{ fontWeight: 'bold' }}>Type:</Text>
+                <Text style={{ color: 'black', fontWeight: 'bold' }}>Type: </Text>
                 {this.state.selectedPlace.preference}
               </Text>
               <Text style={{ fontSize: 16, color: 'gray', marginBottom: 5 }}>
@@ -227,7 +227,7 @@ const MemoizedMarker = React.memo(function MemoizedMarker({ place, handleMarkerP
     'nature and outdoors': 'brown',
     'music': 'teal',
     'technology': 'indigo',
-    'shopping': 'maroon',
+    'shopping': 'cyan',
     'movies and entertainment': 'green'
   };
   
