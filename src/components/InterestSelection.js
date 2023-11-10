@@ -94,7 +94,7 @@ const InterestSelection = ({ selectedInterests, onInterestChange, preferredDista
             </View>
           ))}
 
-          <Text style={styles.label}>Maximum ETA (in minutes):</Text>
+          <Text style={styles.label}>ETA (in minutes - optional)</Text>
           <TextInput
             value={preferredDistance}
             onChangeText={onDistanceChange}
@@ -130,6 +130,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 18,
     fontWeight: 'bold',
+    marginVertical: 3,
   },
   interestContainer: {
     flexDirection: 'row',
