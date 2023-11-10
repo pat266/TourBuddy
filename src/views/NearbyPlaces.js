@@ -5,7 +5,7 @@ import BackButton from '../components/BackButton'
 import PreferencesButton from '../components/PreferenceButton';
 import { GoBackButtonStyles } from '../components/BackButton';
 import { PreferenceButtonStyles} from '../components/PreferenceButton';
-import { View, Text, Button, Alert, Linking, TouchableOpacity } from 'react-native';
+import { View, Text, Button, Alert, Linking, TouchableOpacity, ScrollView } from 'react-native';
 import MapView, { Marker, Callout, PROVIDER_GOOGLE } from 'react-native-maps';
 import Modal from 'react-native-modal'; 
 import * as Location from 'expo-location';
@@ -16,7 +16,7 @@ import { theme } from '../core/theme';
 import { getStatusBarHeight } from 'react-native-status-bar-height';
 import { PanGestureHandler, State } from 'react-native-gesture-handler';
 import TextInput from '../components/TextInput';
-
+import BottomSheet from 'react-native-simple-bottom-sheet';
 
 export default class NearbyPlaces extends Component{
 
@@ -55,15 +55,13 @@ export default class NearbyPlaces extends Component{
           longitudeDelta: 0.01,
         },
       });
+      this.panelRef = React.createRef();
     } catch (error) {
       console.log("getLocationAsycn: ", error);
       Alert.alert('Error', 'Failed to get location. Please try again.');
     }
   };
 
-  toggleModal = () => {
-    this.setState({ isModalVisible: !this.state.isModalVisible });
-  };
 
   askChat = () => {
     
@@ -135,6 +133,8 @@ export default class NearbyPlaces extends Component{
   render() {
     const { region, places, isModalVisible } = this.state;
 
+
+
     if (!region) {
       return (
         <Background>
@@ -154,6 +154,9 @@ export default class NearbyPlaces extends Component{
         >
           <BackButton goBack={this.goBack} />
           <PreferencesButton onPress={this.handlePreferencesPress} />
+          <TouchableOpacity onPress={() => this.panelRef.current.togglePanel()}>
+          <Text>Toggle</Text>
+          </TouchableOpacity>
         </View>
   
         <MapView
@@ -171,90 +174,13 @@ export default class NearbyPlaces extends Component{
           ))}
         </MapView>
 
-        
-
-
-        <TouchableOpacity
-          onPress={this.toggleModal} // Toggle the modal when the button is pressed
-          style={{
-            backgroundColor: 'teal',
-            padding: 10,
-            alignItems: 'center',
-            width: '40%',
-            borderRadius: 5, // Add rounded corners
-            alignSelf: 'center', // Center the button horizontally
-            marginTop: 10, // Add top margin for separation
-          }}
-        >
-          <Text style={{ color: 'white', fontSize: 16 }}>Ask Chat</Text>
-        </TouchableOpacity>
-
-  
-        <Modal
-          isVisible={this.state.isModalVisible}
-          onBackdropPress={this.toggleModal} // Close the modal when the backdrop is pressed
-          style={{
-            backgroundColor: 'transparent', // Set background to transparent
-            padding: 0, // No extra padding
-            margin: 0, // No margin
-            alignItems: 'center',
-          }}
-        >
-          <View style={{
-            backgroundColor: 'white',
-            padding: 20,
-            borderRadius: 10, // Add rounded corners to the child View
-            maxHeight: '80%', // Set the maximum height of the child View
-          }}>
-            <Text>Ask Chat About The Places Around You!</Text>
-
-
-
-
-            <TextInput
-              placeholder="Ask your question or enter your message"
-              value={this.state.userInput}
-              onChangeText={(text) => this.setState({ userInput: text })}
-              style={{
-                borderWidth: 1,
-                padding: 10,
-                marginBottom: 10,
-                borderRadius: 5, // Add rounded corners to the input field
-              }}
-            />
-
-            <Button
-              title="Submit"
-              onPress={this.askChat}
-              style={{
-                backgroundColor: 'teal',
-                padding: 10,
-                width: '40%',
-                borderRadius: 5,
-                alignSelf: 'center',
-                marginTop: 10,
-              }}
-            >
-              <Text style={{ color: 'white', fontSize: 16 }}>Submit</Text>
-            </Button>
-            <Button
-              title="Close"
-              onPress={this.toggleModal}
-              style={{
-                backgroundColor: 'teal',
-                padding: 10,
-                width: '40%',
-                borderRadius: 5,
-                alignSelf: 'center',
-                marginTop: 10,
-              }}
-            >
-              <Text style={{ color: 'white', fontSize: 16 }}>Close</Text>
-            </Button>
-          </View>
-        </Modal>
-
-
+        <BottomSheet isOpen ref={this.panelRef}>
+          {(onScrollEndDrag) => (
+            <ScrollView onScrollEndDrag={onScrollEndDrag}>
+              <Text>Hello Pat</Text>
+            </ScrollView>
+          )}
+        </BottomSheet>
       </View>
     );
   }
