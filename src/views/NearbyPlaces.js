@@ -5,36 +5,48 @@ import BackButton from '../components/BackButton'
 import PreferencesButton from '../components/PreferenceButton';
 import { GoBackButtonStyles } from '../components/BackButton';
 import { PreferenceButtonStyles} from '../components/PreferenceButton';
-import { View, Text, Button, Alert, Linking, TouchableOpacity } from 'react-native';
+import { View, Text, Button, Alert, Linking, TouchableOpacity, Dimensions } from 'react-native';
 import MapView, { Marker, Callout, PROVIDER_GOOGLE } from 'react-native-maps';
 import Modal from 'react-native-modal'; 
 import * as Location from 'expo-location';
 import axios from 'axios';
 import { GOOGLE_MAPS_API_KEY } from "@env";
-import { CalloutStyles, LightGoogleMapsStyle } from '../core/styles';
+import { LightGoogleMapsStyle } from '../core/styles';
 import { theme } from '../core/theme';
 import { getStatusBarHeight } from 'react-native-status-bar-height';
-import { PanGestureHandler, State } from 'react-native-gesture-handler';
+import { PanGestureHandler, State, ScrollView } from 'react-native-gesture-handler';
 import TextInput from '../components/TextInput';
-
+import BottomSheet from 'react-native-gesture-bottom-sheet';
 
 export default class NearbyPlaces extends Component{
 
   constructor(props) {
     super(props);
+    this.bottomSheetRef = React.createRef();
     this.state = {
       region: null,
       places: [],
       etaFilter: 3000,
       isModalVisible: false,
       userInput: '',
+      selectedPlace: null,
     };
-
+    // Bind the method to the class instance
+    this.handleMarkerPress = this.handleMarkerPress.bind(this);
   }
 
   componentDidMount() {
     this.getLocationAsync();
   }
+
+
+  handleMarkerPress(place) {
+    this.setState({ selectedPlace: place }, () => {
+      this.bottomSheetRef.current.show();
+    });
+  }
+  
+
 
   getLocationAsync = async () => {
     try {
@@ -45,7 +57,7 @@ export default class NearbyPlaces extends Component{
       }
       const location = await Location.getCurrentPositionAsync({});
       // const { latitude, longitude } = location.coords;
-      const { latitude, longitude } = { latitude: 33.787037, longitude: -84.380527 };
+      const { latitude, longitude } = { latitude: 33.779751, longitude: -84.390022 };
       this.setNearbyPlaces(latitude, longitude);
       this.setState({
         region: {
@@ -55,15 +67,13 @@ export default class NearbyPlaces extends Component{
           longitudeDelta: 0.01,
         },
       });
+
     } catch (error) {
       console.log("getLocationAsycn: ", error);
       Alert.alert('Error', 'Failed to get location. Please try again.');
     }
   };
 
-  toggleModal = () => {
-    this.setState({ isModalVisible: !this.state.isModalVisible });
-  };
 
   askChat = () => {
     
@@ -82,39 +92,28 @@ export default class NearbyPlaces extends Component{
   
   
 
-  getNearbyPlaces = async (latitude, longitude, textQuery) => {
-    const { etaFilter } = this.state;
-    const url = 'https://places.googleapis.com/v1/places:searchText';
-    const data = {
-      textQuery: textQuery,
-      maxResultCount: 10,
-      locationBias: {
-        circle: {
-          center: { latitude, longitude },
-          radius: etaFilter,
-        }
-      },
-    };
-    const headers = {
-      'Content-Type': 'application/json',
-      'X-Goog-Api-Key': GOOGLE_MAPS_API_KEY,
-      'X-Goog-FieldMask': 'places.id,places.displayName,places.formattedAddress,places.location,places.currentOpeningHours,places.editorialSummary,places.priceLevel,places.rating,places.userRatingCount,places.websiteUri,places.types',
-    };
-  
+  getNearbyPlaces = async (latitude, longitude) => {
     try {
-      const response = await axios.post(url, data, { headers });
-      // console.log(response.data.places);
-      return response.data.places;
+      // try a new approach
+      let radius = 3;
+      // Replace 'localhost' with your machine's IP address
+      const url = `https://pat266.pythonanywhere.com/recommended_places?latitude=${latitude}&longitude=${longitude}&radius=${radius}`;
+      const response = await axios.get(url);
+
+      // console.log(response.data)
+
+      // Assuming the server returns a list of dictionaries
+      return response.data;
     } catch (error) {
       Alert.alert('Error', 'Failed to get nearby places. Please try again.');
       console.error('getNearbyPlaces: ', error);
     }
+
   };
   
   setNearbyPlaces = async(latitude, longitude) => {
-    const restaurants = await this.getNearbyPlaces(latitude, longitude, "restaurants");
-    const attractions = await this.getNearbyPlaces(latitude, longitude, "local attractions");
-    this.setState({ places: restaurants.concat(attractions) });
+    const places = await this.getNearbyPlaces(latitude, longitude);
+    this.setState({ places: places });
   }
 
 
@@ -134,7 +133,9 @@ export default class NearbyPlaces extends Component{
 
   render() {
     const { region, places, isModalVisible } = this.state;
-
+    // max height of the bottom sheet
+    const maxHeight = Dimensions.get('window').height * 0.7;
+    
     if (!region) {
       return (
         <Background>
@@ -164,95 +165,43 @@ export default class NearbyPlaces extends Component{
           cacheEnabled={true}
           loadingEnabled={true}
           liteMode={true}
+          onPress={() => this.setState({ selectedPlace: null })}
         >
           <Marker coordinate={region} />
-          {places.map(place => (
-            <MemoizedMarker key={place.id} place={place} />
+          {places.filter(place => !place.title.includes('Tech Square')).map(place => (
+            <MemoizedMarker key={place.id} place={place} handleMarkerPress={this.handleMarkerPress} />
           ))}
         </MapView>
 
-        
+        {this.state.selectedPlace && (
+          <BottomSheet  
+            ref={this.bottomSheetRef} 
+            height={maxHeight}
+            draggable={false}
+          >
+            <ScrollView contentContainerStyle={{ padding: 20 }}>
+              <Text style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 10 }}>{this.state.selectedPlace.title}</Text>
+              <Text style={{ fontSize: 16, color: 'gray', marginBottom: 5 }}>
+                <Text style={{ color: 'black', fontWeight: 'bold' }}>Type: </Text>
+                {this.state.selectedPlace.preference}
+              </Text>
+              <Text style={{ fontSize: 16, color: 'gray', marginBottom: 5 }}>
+                <Text style={{ color: 'black', fontWeight: 'bold' }}>Address: </Text>
+                {this.state.selectedPlace.address}
+              </Text>
+              <Text style={{ fontSize: 16, color: 'gray', marginBottom: 5 }}>
+                <Text style={{ color: 'black', fontWeight: 'bold' }}>Phone: </Text>
+                {this.state.selectedPlace.phone}
+              </Text>
+              <Text style={{ fontSize: 16, color: 'black', marginTop: 10, marginBottom: 5, lineHeight: 24 }}>
+                <Text style={{ color: 'black', fontWeight: 'bold' }}>Description: </Text>
+                {this.state.selectedPlace.generated_info}
+              </Text>
+            </ScrollView>
+          </BottomSheet>
+        )}
 
 
-        <TouchableOpacity
-          onPress={this.toggleModal} // Toggle the modal when the button is pressed
-          style={{
-            backgroundColor: 'teal',
-            padding: 10,
-            alignItems: 'center',
-            width: '40%',
-            borderRadius: 5, // Add rounded corners
-            alignSelf: 'center', // Center the button horizontally
-            marginTop: 10, // Add top margin for separation
-          }}
-        >
-          <Text style={{ color: 'white', fontSize: 16 }}>Ask Chat</Text>
-        </TouchableOpacity>
-
-  
-        <Modal
-          isVisible={this.state.isModalVisible}
-          onBackdropPress={this.toggleModal} // Close the modal when the backdrop is pressed
-          style={{
-            backgroundColor: 'transparent', // Set background to transparent
-            padding: 0, // No extra padding
-            margin: 0, // No margin
-            alignItems: 'center',
-          }}
-        >
-          <View style={{
-            backgroundColor: 'white',
-            padding: 20,
-            borderRadius: 10, // Add rounded corners to the child View
-            maxHeight: '80%', // Set the maximum height of the child View
-          }}>
-            <Text>Ask Chat About The Places Around You!</Text>
-
-
-
-
-            <TextInput
-              placeholder="Ask your question or enter your message"
-              value={this.state.userInput}
-              onChangeText={(text) => this.setState({ userInput: text })}
-              style={{
-                borderWidth: 1,
-                padding: 10,
-                marginBottom: 10,
-                borderRadius: 5, // Add rounded corners to the input field
-              }}
-            />
-
-            <Button
-              title="Submit"
-              onPress={this.askChat}
-              style={{
-                backgroundColor: 'teal',
-                padding: 10,
-                width: '40%',
-                borderRadius: 5,
-                alignSelf: 'center',
-                marginTop: 10,
-              }}
-            >
-              <Text style={{ color: 'white', fontSize: 16 }}>Submit</Text>
-            </Button>
-            <Button
-              title="Close"
-              onPress={this.toggleModal}
-              style={{
-                backgroundColor: 'teal',
-                padding: 10,
-                width: '40%',
-                borderRadius: 5,
-                alignSelf: 'center',
-                marginTop: 10,
-              }}
-            >
-              <Text style={{ color: 'white', fontSize: 16 }}>Close</Text>
-            </Button>
-          </View>
-        </Modal>
 
 
       </View>
@@ -260,40 +209,35 @@ export default class NearbyPlaces extends Component{
   }
 }
 
-const MemoizedMarker = React.memo(function MemoizedMarker({ place }) {
+const MemoizedMarker = React.memo(function MemoizedMarker({ place, handleMarkerPress }) {
   const {
-    displayName,
-    formattedAddress,
-    location,
-    priceLevel,
-    rating,
-    userRatingCount,
-    websiteUri,
-    editorialSummary,
-    currentOpeningHours,
-    types,
+    title, // The name of the place
+    address,
+    latitude,
+    longitude,
+    phone,
+    preference, // types of places
   } = place;
 
-  const { text: placeName } = displayName;
-  const { latitude, longitude } = location;
-
-  let pinColor = 'blue';
-  if (types.includes('culture') || types.includes('education') || types.includes('entertainment') || types.includes('recreation')) {
-    pinColor = 'purple';
-  } else if (types.includes('food') || types.includes('drink')) {
-    pinColor = 'orange';
-  } else if (types.includes('geocode')) {
-    pinColor = 'black';
-  } else if (types.includes('health') || types.includes('wellness')) {
-    pinColor = 'pink';
-  } else if (types.includes('lodging')) {
-    pinColor = 'brown';
-  } else if (types.includes('services')) {
-    pinColor = 'teal';
-  } else if (types.includes('shopping')) {
-    pinColor = 'indigo';
-  } else if (types.includes('sports')) {
-    pinColor = 'maroon';
+  const preferenceColors = {
+    'sports': 'purple',
+    'art and culture': 'orange',
+    'museum and history': 'black',
+    'food and dining': 'pink',
+    'nature and outdoors': 'brown',
+    'music': 'teal',
+    'technology': 'indigo',
+    'shopping': 'cyan',
+    'movies and entertainment': 'green'
+  };
+  
+  let pinColor = 'blue'; // default color
+  // change the color based on the preference
+  for (let pref in preferenceColors) {
+    if (preference.includes(pref)) {
+      pinColor = preferenceColors[pref];
+      break;
+    }
   }
 
   return (
@@ -303,23 +247,11 @@ const MemoizedMarker = React.memo(function MemoizedMarker({ place }) {
         longitude,
       }}
       pinColor={pinColor}
+      onPress={(event) => {
+        event.stopPropagation(); // Prevents the event from bubbling up to the map
+        handleMarkerPress(place);
+      }}
     >
-      <Callout>
-        <View style={CalloutStyles.calloutContainer}>
-          <Text style={CalloutStyles.calloutTitle}>{placeName}</Text>
-          {/*<Text style={CalloutStyles.calloutText}>Address: {formattedAddress}</Text>
-          {priceLevel && <Text style={CalloutStyles.calloutText}>Price Level: {priceLevel}</Text>}*/}
-          <Text style={CalloutStyles.calloutText}>Rating: {rating} ({userRatingCount} ratings)</Text>
-          {editorialSummary && editorialSummary.text && (
-            <Text style={CalloutStyles.calloutText}>
-              Description: {editorialSummary.text}
-            </Text>
-          )}
-          <TouchableOpacity onPress={() => Linking.openURL(websiteUri)}>
-            <Text style={CalloutStyles.calloutLink}>Website</Text>
-          </TouchableOpacity>
-        </View>
-      </Callout>
     </Marker>
   );
 });
