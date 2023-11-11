@@ -57,7 +57,7 @@ export default class NearbyPlaces extends Component{
       }
       const location = await Location.getCurrentPositionAsync({});
       // const { latitude, longitude } = location.coords;
-      const { latitude, longitude } = { latitude: 33.787037, longitude: -84.380527 };
+      const { latitude, longitude } = { latitude: 33.779751, longitude: -84.390022 };
       this.setNearbyPlaces(latitude, longitude);
       this.setState({
         region: {
@@ -168,7 +168,7 @@ export default class NearbyPlaces extends Component{
           onPress={() => this.setState({ selectedPlace: null })}
         >
           <Marker coordinate={region} />
-          {places.map(place => (
+          {places.filter(place => !place.title.includes('Tech Square')).map(place => (
             <MemoizedMarker key={place.id} place={place} handleMarkerPress={this.handleMarkerPress} />
           ))}
         </MapView>
