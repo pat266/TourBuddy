@@ -3,6 +3,4 @@ duckduckgo-search==3.9.4
 openai==1.1.1
 python-dotenv==1.0.0
 readability-lxml==0.8.1
-Scrapy==2.11.0
 Flask==3.0.0
-crochet==2.1.1

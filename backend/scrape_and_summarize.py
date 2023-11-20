@@ -1,44 +1,22 @@
-import crochet
-crochet.setup()
-
-from scrapy.crawler import CrawlerRunner
-from scrapy.settings import Settings
-from crawl_spider import MySpider
 from duckduckgo_search import DDGS
 from openai import OpenAI
 from config import Config
+from scraper import Scraper
 
-class WebScraper():
+class ScrapeAndSummarize():
     def __init__(self):
         self.ddgs = DDGS()
         self.client = OpenAI(api_key=Config.OPENAI_API_KEY)
+        self.scraper = Scraper()
 
-    @crochet.run_in_reactor
-    def run_spider(self, url_list, clean_with_llm):
-        custom_settings = {
-            'LOG_ENABLED': False,
-            'RANDOMIZE_DOWNLOAD_DELAY': True,
-        }
-        settings = Settings()
-        settings.setdict(custom_settings)
-        crawler = CrawlerRunner(settings)
-        deferred = crawler.crawl(MySpider, start_urls=url_list, clean_with_llm=clean_with_llm)
-        return deferred
-
-    def ddgsearch(self, query, numresults=10, clean_with_llm=False):
+    def ddgsearch(self, query, numresults=10):
         results = list(self.ddgs.text(query, max_results=numresults))
         urls = [result['href'] for result in results][:numresults]
         print(urls)
-        MySpider.results = []
-        eventual_result = self.run_spider(urls, clean_with_llm)
-        try:
-            results = eventual_result.wait(timeout=20.0)
-        except crochet.TimeoutError:
-            raise Exception("The scraping operation timed out.")
-        return MySpider.results
+        return self.scraper.run(urls)
 
     def summarize_reviews(self, crawled_reviews, place_type):
-        all_reviews = ''.join([review['useful_text'] for review in crawled_reviews])
+        all_reviews = ''.join([review['raw_content'] for review in crawled_reviews])
         if place_type == 'food and dining':
             prompt = f"""
             "From the following paragraph about a restaurant, please identify and summarize the key details regarding:
