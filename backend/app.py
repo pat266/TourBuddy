@@ -12,12 +12,16 @@ scrapeAndSummarize = ScrapeAndSummarize()
 
 @app.route('/recommended_places', methods=['GET'])
 def get_recommended_places():
+    start_time = time.time()
     latitude = request.args.get('latitude', default="33.771030", type=str)
     longitude = request.args.get('longitude', default="-84.391090", type=str)
     radius = request.args.get('radius', default=10, type=int)
 
     recommended_places = places_processor.get_recommended_places(latitude, longitude, radius)
     updated_recommended_places = places_processor.process_places_concurrently(recommended_places)
+
+    execution_time = time.time() - start_time
+    print(f"The recommended_places API took {execution_time} seconds to execute.")
 
     return jsonify(updated_recommended_places)
 

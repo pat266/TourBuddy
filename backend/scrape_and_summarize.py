@@ -18,22 +18,13 @@ class ScrapeAndSummarize():
         return ' '.join([review['raw_content'] for review in crawled_reviews])
 
     def summarize_reviews(self, all_reviews, place_type):
-        if place_type == 'food and dining':
-            prompt = f"""
-            "From the following paragraph about a restaurant, please identify and summarize the key details regarding:
-            1) the estimated cost in the restaurant,
-            2) the most popular dishes or what people commonly order,
-            and 3) the environment and atmosphere of the restaurant.
-            {all_reviews}"
-            """
-        else:
-            prompt = f"""
-            "From the following paragraph about a place, please identify and summarize the key details regarding:
-            1) the estimated cost of entry,
-            2) the most popular activitiess,
-            and 3) the environment and atmosphere of the place.
-            {all_reviews}"
-            """
+        prompt = f"""
+        "From the following paragraph about a place, please identify and summarize the key details regarding:
+        1) the estimated cost of entry.
+        2) the most popular activities, or if this is a restaurant, the most popular dishes or what people commonly order.
+        and 3) the environment and atmosphere of the place.
+        {all_reviews}"
+        """
 
         response = self.client.chat.completions.create(
             model="gpt-3.5-turbo-1106",
