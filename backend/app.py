@@ -28,12 +28,12 @@ def search():
     numresults = int(request.args.get('numresults', 5))
 
     start_time = time.time()
-    crawled_reviews = scrapeAndSummarize.ddgsearch(place_name, numresults)
+    all_reviews = scrapeAndSummarize.ddgsearch(place_name, numresults)
     execution_time = time.time() - start_time
     print(f"The ddgsearch function took {execution_time} seconds to execute.")
 
     start_time = time.time()
-    summary = scrapeAndSummarize.summarize_reviews(crawled_reviews, place_type)
+    summary = scrapeAndSummarize.summarize_reviews(all_reviews, place_type)
     execution_time = time.time() - start_time
     print(f"The summarize_reviews function took {execution_time} seconds to execute.")
     return jsonify({'summary': summary})

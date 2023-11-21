@@ -14,10 +14,10 @@ class ScrapeAndSummarize():
         results = list(self.ddgs.text(query, max_results=numresults))
         urls = [result['href'] for result in results][:numresults]
         print(urls)
-        return self.scraper.run(urls)
+        crawled_reviews = self.scraper.run(urls)
+        return ' '.join([review['raw_content'] for review in crawled_reviews])
 
-    def summarize_reviews(self, crawled_reviews, place_type):
-        all_reviews = ''.join([review['raw_content'] for review in crawled_reviews])
+    def summarize_reviews(self, all_reviews, place_type):
         if place_type == 'food and dining':
             prompt = f"""
             "From the following paragraph about a restaurant, please identify and summarize the key details regarding:
