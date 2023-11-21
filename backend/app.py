@@ -3,6 +3,7 @@ from places_processor import PlacesProcessor
 from scrape_and_summarize import ScrapeAndSummarize
 from config import Config
 from openai import OpenAI
+import time
 
 app = Flask(__name__)
 client = OpenAI(api_key=Config.OPENAI_API_KEY)
@@ -26,9 +27,15 @@ def search():
     place_type = request.args.get('place_type')
     numresults = int(request.args.get('numresults', 5))
 
+    start_time = time.time()
     crawled_reviews = scrapeAndSummarize.ddgsearch(place_name, numresults)
-    summary = scrapeAndSummarize.summarize_reviews(crawled_reviews, place_type)
+    execution_time = time.time() - start_time
+    print(f"The ddgsearch function took {execution_time} seconds to execute.")
 
+    start_time = time.time()
+    summary = scrapeAndSummarize.summarize_reviews(crawled_reviews, place_type)
+    execution_time = time.time() - start_time
+    print(f"The summarize_reviews function took {execution_time} seconds to execute.")
     return jsonify({'summary': summary})
 
 if __name__ == '__main__':

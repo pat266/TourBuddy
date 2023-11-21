@@ -10,6 +10,7 @@ class ScrapeAndSummarize():
         self.scraper = Scraper()
 
     def ddgsearch(self, query, numresults=10):
+        query = query + ' tripadvisor -site:facebook.com -site:yelp.com'
         results = list(self.ddgs.text(query, max_results=numresults))
         urls = [result['href'] for result in results][:numresults]
         print(urls)
