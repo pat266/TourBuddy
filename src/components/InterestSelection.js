@@ -52,23 +52,57 @@ const InterestSelection = ({ selectedInterests, onInterestChange, preferredDista
   };
 
   // Function to toggle the selected interests
-  const toggleInterest = (interest) => {
-    if (selectedInterests.includes(interest)) {
-      onInterestChange(selectedInterests.filter(item => item !== interest));
-    } else {
-      onInterestChange([...selectedInterests, interest]);
-    }
+  const toggleInterest = (interest, isMainInterest = false) => {
+    onInterestChange(prevSelectedInterests => {
+      let updatedInterests;
+  
+      if (isMainInterest) {
+        // Find the main interest object
+        const mainInterestObj = interests.find(i => i.name === interest);
+  
+        // Determine if the main interest is currently selected
+        const isMainInterestSelected = prevSelectedInterests.includes(interest);
+  
+        if (isMainInterestSelected) {
+          // Remove the main interest and its sub-interests if it's currently selected
+          updatedInterests = prevSelectedInterests.filter(item => item !== interest && !mainInterestObj.subInterests.includes(item));
+        } else {
+          // Add the main interest and all its sub-interests
+          updatedInterests = [...new Set([...prevSelectedInterests, interest, ...mainInterestObj.subInterests])];
+        }
+      } else {
+        // Toggle individual sub-interest
+        if (prevSelectedInterests.includes(interest)) {
+          updatedInterests = prevSelectedInterests.filter(item => item !== interest);
+        } else {
+          updatedInterests = [...prevSelectedInterests, interest];
+        }
+  
+        // Check if all or no sub-interests are selected to update the main interest accordingly
+        const mainInterest = interests.find(i => i.subInterests.includes(interest));
+        const allSubSelected = mainInterest && mainInterest.subInterests.every(sub => updatedInterests.includes(sub));
+        const noneSubSelected = mainInterest && mainInterest.subInterests.every(sub => !updatedInterests.includes(sub));
+  
+        if (allSubSelected && !updatedInterests.includes(mainInterest.name)) {
+          updatedInterests.push(mainInterest.name);
+        } else if (noneSubSelected && updatedInterests.includes(mainInterest.name)) {
+          updatedInterests = updatedInterests.filter(item => item !== mainInterest.name);
+        }
+      }
+  
+      return updatedInterests;
+    });
   };
 
   return (
-        <ScrollView style={styles.scrollContainer}>
-          <View style={styles.container}>
+      <ScrollView style={styles.scrollContainer}>
+        <View style={styles.container}>
             <Text style={styles.label}>Select Your Interests:</Text>
-            {interests.map((mainInterest, index) => (
-              <View key={index}>
+            {interests.map((mainInterest) => (
+              <View key={mainInterest.name}>
                 <TouchableOpacity
                   style={styles.interestContainer}
-                  onPress={() => toggleInterest(mainInterest.name)}
+                  onPress={() => toggleInterest(mainInterest.name, true)}
                 >
                   <Checkbox
                     value={selectedInterests.includes(mainInterest.name)}
@@ -77,9 +111,9 @@ const InterestSelection = ({ selectedInterests, onInterestChange, preferredDista
                   <Text style={styles.interestText}>{mainInterest.name}</Text>
                 </TouchableOpacity>
                 {selectedInterests.includes(mainInterest.name) && (
-                  mainInterest.subInterests.map((subInterest, subIndex) => (
+                  mainInterest.subInterests.map((subInterest) => (
                     <TouchableOpacity
-                      key={subIndex}
+                      key={subInterest} // use subInterest as key here
                       style={styles.subInterestContainer}
                       onPress={() => toggleInterest(subInterest)}
                     >
@@ -91,8 +125,8 @@ const InterestSelection = ({ selectedInterests, onInterestChange, preferredDista
                     </TouchableOpacity>
                   ))
                 )}
-            </View>
-          ))}
+              </View>
+            ))}
 
           <Text style={styles.label}>ETA (in minutes - optional)</Text>
           <TextInput
@@ -136,6 +170,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginVertical: 4, // Reduce the vertical margin
+    marginTop: 5, // move everything down by 5 pixels
     padding: 4, // Reduce the padding
     borderRadius: 3,
     backgroundColor: '#e0e0e0',
