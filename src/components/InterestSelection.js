@@ -9,35 +9,31 @@ const InterestSelection = ({ selectedInterests, onInterestChange, preferredDista
    const interests = [
     {
       name: 'Sports',
-      subInterests: ['Football', 'Basketball', 'Tennis', 'Golf'],
+      subInterests: ['Football', 'Basketball', 'Tennis', 'Golf', 'Skiing', 'Pools'],
     },
     {
       name: 'Art and Culture',
-      subInterests: ['Museum', 'Painting', 'Sculpture', 'Gallery'],
+      subInterests: ['Museums', 'Painting', 'Sculpture', 'Gallery'],
     },
     {
-      name: 'History',
-      subInterests: ['Ancient History', 'Modern History', 'Archaeology'],
+      name: 'Historical',
+      subInterests: ['Historic Districts', 'Battlefields', 'Fortifications', 'Monuments and Memorials', 'Archaeology'],
     },
     {
       name: 'Food and Dining',
-      subInterests: ['Fine Dining', 'Street Food', 'Vegetarian', 'Italian'],
+      subInterests: ['Fine Dining', 'Street Food', 'Fast food', 'Pubs', 'Bars', 'Restaurants'],
     },
     {
       name: 'Nature and Outdoors',
-      subInterests: ['Hiking', 'Camping', 'Wildlife', 'Beaches'],
+      subInterests: ['Hiking', 'Climbing', 'Camping', 'Nature Reserves', 'Beaches'],
     },
     {
       name: 'Music',
       subInterests: ['Rock', 'Jazz', 'Classical', 'Hip-Hop'],
     },
     {
-      name: 'Technology',
-      subInterests: ['Gadgets', 'Programming', 'AI', 'Mobile Apps'],
-    },
-    {
-      name: 'Shopping',
-      subInterests: ['Fashion', 'Electronics', 'Antiques', 'Local Markets'],
+      name: 'Shops',
+      subInterests: ['Supermarkets', 'Malls', 'Electronics', 'Bakeries', 'Local Markets'],
     },
     {
       name: 'Movies and Entertainment',
@@ -106,7 +102,7 @@ const InterestSelection = ({ selectedInterests, onInterestChange, preferredDista
                 >
                   <Checkbox
                     value={selectedInterests.includes(mainInterest.name)}
-                    onValueChange={() => toggleInterest(mainInterest.name)}
+                    onValueChange={() => toggleInterest(mainInterest.name, true)}
                   />
                   <Text style={styles.interestText}>{mainInterest.name}</Text>
                 </TouchableOpacity>
