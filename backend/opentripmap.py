@@ -2,7 +2,7 @@ import requests
 from config import Config
 
 class OpenTripMapAPI:
-    def __init__(self, api_key):
+    def __init__(self):
         self.base_url = "https://opentripmap-places-v1.p.rapidapi.com/en/places"
         self.headers = {
             "X-RapidAPI-Key": Config.OPENTRIPMAP_API_KEY,
@@ -31,9 +31,11 @@ class OpenTripMapAPI:
     def nearby_search(self, lat, lon, radius, kinds=[]):
         url = f"{self.base_url}/radius"
         params = {
-            "lat": lat,
-            "lon": lon,
-            "radius": radius
+            "lat": str(lat),
+            "lon": str(lon),
+            "format":"json",
+            "radius": str(radius),
+            "limit":str(100),
         }
         if kinds is not None or len(kinds) > 0:
             params['kinds'] = ','.join(kinds)
