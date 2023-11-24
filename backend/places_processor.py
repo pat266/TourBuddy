@@ -1,10 +1,10 @@
-import threading
 from langchain.chat_models import ChatOpenAI
 from langchain.agents import initialize_agent, AgentType, Tool, AgentExecutor
 from duckduckgo_search import DDGS
 from scrape_and_summarize import ScrapeAndSummarize
 from config import Config
 from opentripmap import OpenTripMapAPI
+import json
 
 class PlacesProcessor:
     def __init__(self, client):
@@ -70,6 +70,7 @@ class PlacesProcessor:
             recommended_place['id'] = str(recommended_place['point']['lat']) + str(recommended_place['point']['lon'])
             recommended_place['latitude'] = recommended_place['point']['lat']
             recommended_place['longitude'] = recommended_place['point']['lon']
+            recommended_place['kinds'] = self.clean_kinds(recommended_place['kinds'])
             recommended_place.pop('point', None)
             recommended_place.pop('rate', None)
             recommended_place.pop('osm', None)
@@ -104,32 +105,50 @@ class PlacesProcessor:
             ],
         )
         info = response.choices[0].message.content.strip()
-        # if info in 'have any specific information about':
-        #     print(f"Finding additional information about {place_name}.")
-        #     # scrape the web for information
-        #     info = self.get_summarized_reviews(place_name)
         print(info)
         return info
-
-    def thread_worker(self, place):
-        try:
-            print(f"Starting processing for {place['name']}")
-            place['info'] = self.generate_information(place['name'])
-            print(f"Finished processing for {place['name']}")
-        except Exception as e:
-            print(f"Error gathering information for {place['name']}: {e}")
-
-    def process_places_concurrently(self, places):
-        threads = []
+    
+    def process_places(self, places):
+        print(places)
+        promptsArray = []
         for place in places:
-            t = threading.Thread(target=self.thread_worker, args=(place,))
-            threads.append(t)
-            t.start()
-
-        for t in threads:
-            t.join()
+            place['info'] = "" # generate a placeholder for the information
+            promptsArray.append(f"""
+                Based on what you know, generate about this place: {place['name']} with the ID: {place['id']}.
+                Key information such as the environment and atmosphere of the place.
+                If possible, estimate the cost (preferably range of number), and give some recommendations of what food people order if it is a restaurant, or common activities people do in here.
+                Label them appropriately, and go to the next line for each detail.
+            """)
+        stringifiedPromptsArray = json.dumps(promptsArray)
+        response = self.client.chat.completions.create(
+            model="gpt-3.5-turbo-1106",
+            # max_tokens=500,
+            temperature=0,
+            response_format= {"type": "json_object"},
+            messages=
+            [
+                {"role": "system", "content": "You are a helpful assistant. Reply in JSON format to all answers with as much details as possible to each query. Use the ID as the key to the JSON."},
+                {"role": "user", "content": stringifiedPromptsArray},
+            ],
+        )
+        # print(response.choices[0].message.content)
+        batchCompletion = json.loads(response.choices[0].message.content)
         
-        # for place in places:
-        #     if place['info'] in 'have any specific information about':
-        #         place['info'] = self.get_summarized_reviews(place['name'])
+        # process the batch responses
+        for place in places:
+            data = batchCompletion[place['id']]
+            stringified_data = "\n".join([f"{key.replace('_', ' ').capitalize()}: {value}" for key, value in data.items()])
+            place['info'] = stringified_data
         return places
+    
+    def clean_kinds(self, original_string):
+        # Splitting the string into a list of words/phrases
+        words = original_string.split(',')
+
+        # Replacing underscores with spaces and capitalizing each word
+        formatted_words = [word.replace('_', ' ').capitalize() for word in words]
+
+        # Joining the words back into a single string
+        presentable_string = ', '.join(formatted_words)
+
+        return presentable_string

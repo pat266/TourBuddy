@@ -33,7 +33,7 @@ def get_recommended_places_open_trip():
     radius = request.args.get('radius', default=5, type=int)
 
     recommended_places = places_processor.get_recommended_places_open_trip_map(latitude, longitude, radius)
-    updated_recommended_places = places_processor.process_places_concurrently(recommended_places)
+    updated_recommended_places = places_processor.process_places(recommended_places)
 
     execution_time = time.time() - start_time
     print(f"The get_recommended_places_open_trip API took {execution_time} seconds to execute.")
