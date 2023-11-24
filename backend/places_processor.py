@@ -136,7 +136,7 @@ class PlacesProcessor:
         # process the batch responses
         for place in places:
             data = batchCompletion[place['id']]
-            stringified_data = "\n".join([f"{key.replace('_', ' ').capitalize()}: {value}" for key, value in data.items()])
+            stringified_data = self.stringify_dictionary(data)
             place['info'] = stringified_data
         return places
     
@@ -151,3 +151,15 @@ class PlacesProcessor:
         presentable_string = ', '.join(formatted_words)
 
         return presentable_string
+    
+    def stringify_dictionary(self, data):
+        """
+        Converts a dictionary into a readable string format. If the value is a list, it will be
+        converted to a string representation of the list.
+        """
+        stringified_data = []
+        for key, value in data.items():
+            if isinstance(value, list):
+                value = ', '.join(value)
+            stringified_data.append(f"{key.replace('_', ' ').capitalize()}: {value}")
+        return "\n".join(stringified_data)
