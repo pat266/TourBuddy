@@ -1,6 +1,7 @@
 from flask import Flask, jsonify, request
 from places_processor import PlacesProcessor
 from scrape_and_summarize import ScrapeAndSummarize
+from opentripmap_categories import CategoryChecker
 from config import Config
 from openai import OpenAI
 import time
@@ -31,6 +32,9 @@ def get_recommended_places_open_trip():
     latitude = request.args.get('latitude', default="33.771030", type=str)
     longitude = request.args.get('longitude', default="-84.391090", type=str)
     radius = request.args.get('radius', default=5, type=int)
+    preferences = request.args.getlist('preferences')
+    # exclude preferences that are not in the categories
+    preferences = [pref for pref in preferences if CategoryChecker.is_value_in_categories(pref)]
 
     recommended_places = places_processor.get_recommended_places_open_trip_map(latitude, longitude, radius)
     updated_recommended_places = places_processor.process_places(recommended_places)
@@ -60,6 +64,6 @@ def search():
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
     # curl "http://localhost:5000/recommended_places?latitude=33.771030&longitude=-84.391090&radius=10"
-    # curl "http://localhost:5000/recommended_places_open_trip?latitude=33.771030&longitude=-84.391090&radius=10"
+    # curl "http://localhost:5000/recommended_places_open_trip?latitude=33.771030&longitude=-84.391090&radius=5&preferences=restaurants&preferences=banks&preferences=faulty"
     # curl "http://localhost:5000/detailed_reviews?place_name=R.+Thomas+Deluxe+Grill&place_type=food+and+dining&numresults=5"
     

@@ -64,7 +64,7 @@ class PlacesProcessor:
         recommended_places_list = self.opentripmap.nearby_search(latitude, longitude, radius * 1000, kinds=preferences)
         # Filter out dictionaries where 'name' is empty or null
         recommended_places_list = [place for place in recommended_places_list if place.get('name')][:20]
-        print('Got the recommended places from OpenTripMap API')
+        # print('Got the recommended places from OpenTripMap API')
         for recommended_place in recommended_places_list:
             # print(recommended_place)
             recommended_place['id'] = str(recommended_place['point']['lat']) + str(recommended_place['point']['lon'])
@@ -105,11 +105,10 @@ class PlacesProcessor:
             ],
         )
         info = response.choices[0].message.content.strip()
-        print(info)
         return info
     
     def process_places(self, places):
-        print(places)
+        # print(places)
         promptsArray = []
         for place in places:
             place['info'] = "" # generate a placeholder for the information
