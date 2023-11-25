@@ -62,6 +62,7 @@ class PlacesProcessor:
     
     def get_recommended_places_open_trip_map(self, latitude="33.771030", longitude="-84.391090", radius=10, preferences=['banks', 'restaurants']):
         recommended_places_list = self.opentripmap.nearby_search(latitude, longitude, radius * 1000, kinds=preferences)
+        # print(recommended_places_list)
         # Filter out dictionaries where 'name' is empty or null
         recommended_places_list = [place for place in recommended_places_list if place.get('name')][:20]
         # print('Got the recommended places from OpenTripMap API')

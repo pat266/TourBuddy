@@ -27,6 +27,7 @@ export default function InterestsScreen({ navigation }) {
 
   const savePreferences = async () => {
     try {
+      console.log('Saving preferences in Interests.js' + selectedSubInterests);
       await AsyncStorage.setItem('selectedInterests', JSON.stringify(selectedInterests));
       await AsyncStorage.setItem('selectedSubInterests', JSON.stringify(selectedSubInterests));
       await AsyncStorage.setItem('preferredDistance', preferredDistance);

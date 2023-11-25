@@ -11,6 +11,9 @@ client = OpenAI(api_key=Config.OPENAI_API_KEY)
 places_processor = PlacesProcessor(client)
 scrapeAndSummarize = ScrapeAndSummarize()
 
+def clean_preference(preference):
+    return preference.lower().replace(" ", "_")
+
 @app.route('/recommended_places', methods=['GET'])
 def get_recommended_places():
     start_time = time.time()
@@ -34,9 +37,10 @@ def get_recommended_places_open_trip():
     radius = request.args.get('radius', default=5, type=int)
     preferences = request.args.getlist('preferences')
     # exclude preferences that are not in the categories
-    preferences = [pref for pref in preferences if CategoryChecker.is_value_in_categories(pref)]
-
-    recommended_places = places_processor.get_recommended_places_open_trip_map(latitude, longitude, radius)
+    preferences = [transformed_pref for transformed_pref in (clean_preference(pref) for pref in preferences) if CategoryChecker.is_value_in_categories(transformed_pref)]
+    if len(preferences) == 0:
+        preferences = ['banks', 'restaurants']
+    recommended_places = places_processor.get_recommended_places_open_trip_map(latitude, longitude, radius, preferences)
     updated_recommended_places = places_processor.process_places(recommended_places)
 
     execution_time = time.time() - start_time

@@ -4,37 +4,45 @@ import Slider from '@react-native-community/slider';
 import Checkbox from 'expo-checkbox';
 
 // Define an array of interests with sub-interests
-const interests = [
+export const interests = [
   {
     name: 'Sports',
+    color: 'purple',
     subInterests: ['Football', 'Basketball', 'Tennis', 'Golf', 'Skiing', 'Pools'],
   },
   {
     name: 'Art and Culture',
+    color: 'orange',
     subInterests: ['Museums', 'Painting', 'Sculpture', 'Gallery'],
   },
   {
     name: 'Historical',
+    color: 'teal',
     subInterests: ['Historic Districts', 'Battlefields', 'Fortifications', 'Monuments and Memorials', 'Archaeology'],
   },
   {
     name: 'Food and Dining',
+    color: 'pink',
     subInterests: ['Fine Dining', 'Street Food', 'Fast food', 'Pubs', 'Bars', 'Restaurants'],
   },
   {
     name: 'Nature and Outdoors',
+    color: 'brown',
     subInterests: ['Hiking', 'Climbing', 'Camping', 'Nature Reserves', 'Beaches'],
   },
   {
     name: 'Music',
+    color: 'black',
     subInterests: ['Rock', 'Jazz', 'Classical', 'Hip-Hop'],
   },
   {
     name: 'Shops',
+    color: 'indigo',
     subInterests: ['Supermarkets', 'Malls', 'Electronics', 'Bakeries', 'Local Markets'],
   },
   {
     name: 'Movies and Entertainment',
+    color: 'green',
     subInterests: ['Action', 'Comedy', 'Drama', 'Science Fiction'],
   },
 ];
@@ -218,3 +226,4 @@ export default InterestSelection;
 
 // Define an array of main interests for filtering
 export const mainInterests = interests.map(interest => interest.name);
+

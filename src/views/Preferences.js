@@ -32,6 +32,7 @@ export default function InterestsScreen({ navigation }) {
 
   const savePreferences = async () => {
     try {
+      console.log('Saving preferences in Preferences.js: ' + selectedSubInterests);
       await AsyncStorage.setItem('selectedInterests', JSON.stringify(selectedInterests));
       await AsyncStorage.setItem('selectedSubInterests', JSON.stringify(selectedSubInterests));
       await AsyncStorage.setItem('preferredDistance', preferredDistance);
@@ -58,6 +59,7 @@ export default function InterestsScreen({ navigation }) {
   };
 
   const onNextPressed = () => {
+    savePreferences();
     // Handle the logic for moving to next screen and pass the preferences
     navigation.navigate('NearbyPlaces', {
       selectedInterests,
