@@ -42,7 +42,7 @@ export default class NearbyPlaces extends Component{
     this.state = {
       region: null,
       places: [],
-      etaFilter: 3000,
+      etaFilter: 3,
       isModalVisible: false,
       userInput: '',
       selectedPlace: null,
@@ -55,7 +55,7 @@ export default class NearbyPlaces extends Component{
   componentDidMount() {
     this._unsubscribe = this.props.navigation.addListener('focus', () => {
       console.log('NearbyPlaces.js: focus event')
-      this.loadSelectedSubInterests();
+      this.loadSettings();
       
     });
     this.getLocationAsync();
@@ -66,21 +66,27 @@ export default class NearbyPlaces extends Component{
   }
 
   componentDidUpdate(prevProps, prevState) {
-    if (this.state.selectedSubInterests !== prevState.selectedSubInterests) {
+    if (this.state.region && (this.state.selectedSubInterests !== prevState.selectedSubInterests ||
+        this.state.etaFilter !== prevState.etaFilter)) {
       this.setNearbyPlaces(this.state.region.latitude, this.state.region.longitude);
     }
   }
 
-  loadSelectedSubInterests = async () => {
+  loadSettings = async () => {
     try {
       const savedSubInterests = await AsyncStorage.getItem('selectedSubInterests');
-      
       if (savedSubInterests !== null) {
         print('savedSubInterests: ', savedSubInterests)
         this.setState({ selectedSubInterests: JSON.parse(savedSubInterests) });
       }
+      const savedDistance = await AsyncStorage.getItem('preferredDistance');
+      if (savedDistance !== null && savedDistance !== '' && parseInt(savedDistance) > 0) {
+        // use the estimate of 10 minutes ETA for 3 km
+        const eta = parseInt(savedDistance) * 3 / 10;
+        this.setState({ etaFilter: eta });
+      }
     } catch (e) {
-      console.log('Failed to load the selected sub interests: ', e);
+      console.log('Failed to load the settings: ', e);
     }
   }
 
@@ -138,13 +144,10 @@ export default class NearbyPlaces extends Component{
 
   getNearbyPlaces = async (latitude, longitude) => {
     try {
-      
-      let radius = 3;
-
       let selectedSubInterests = this.state.selectedSubInterests
-      console.log("Current selected sub interests: " + selectedSubInterests);
+      console.log("Current selected sub interests: " + selectedSubInterests + " and etaFilter: " + this.state.etaFilter);
 
-      let url = `https://pat266.pythonanywhere.com/recommended_places_open_trip?latitude=${latitude}&longitude=${longitude}&radius=${radius}`;
+      let url = `https://pat266.pythonanywhere.com/recommended_places_open_trip?latitude=${latitude}&longitude=${longitude}&radius=${this.state.etaFilter}`;
       if (selectedSubInterests && selectedSubInterests.length > 0) {
         selectedSubInterests.forEach(interest => {
           url += `&preferences=${encodeURIComponent(interest)}`;
@@ -153,7 +156,7 @@ export default class NearbyPlaces extends Component{
       console.log('URL: ', url);
       const response = await axios.get(url);
 
-      // console.log(response.data)
+      console.log("Got the response from the server.")
 
       // Assuming the server returns a list of dictionaries
       return response.data;
