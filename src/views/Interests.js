@@ -7,21 +7,29 @@ import Button from '../components/Button';
 import { theme } from '../core/theme';
 import InterestSelection from '../components/InterestSelection';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { mainInterests } from '../components/InterestSelection';
 
 
 export default function InterestsScreen({ navigation }) {
   const [selectedInterests, setSelectedInterests] = useState([]);
+  const [selectedSubInterests, setSelectedSubInterests] = useState([]);
   const [preferredDistance, setPreferredDistance] = useState('');
   const [preferredCost, setPreferredCost] = useState('');
 
   useEffect(() => {
+    // Filter and update sub-interests whenever selectedInterests change
+    const filteredSubInterests = selectedInterests.filter(interest => !mainInterests.includes(interest));
+    setSelectedSubInterests(filteredSubInterests);
+
     // Save preferences whenever they change
     savePreferences();
   }, [selectedInterests, preferredDistance, preferredCost]);
 
   const savePreferences = async () => {
     try {
+      console.log('Saving preferences in Interests.js' + selectedSubInterests);
       await AsyncStorage.setItem('selectedInterests', JSON.stringify(selectedInterests));
+      await AsyncStorage.setItem('selectedSubInterests', JSON.stringify(selectedSubInterests));
       await AsyncStorage.setItem('preferredDistance', preferredDistance);
       await AsyncStorage.setItem('preferredCost', preferredCost);
     } catch (e) {
@@ -34,6 +42,7 @@ export default function InterestsScreen({ navigation }) {
     // Handle the logic for moving to the next screen here and pass the selected interests
     navigation.navigate('HomeScreen', {
       selectedInterests,
+      selectedSubInterests,
       preferredDistance,
       preferredCost,
     });

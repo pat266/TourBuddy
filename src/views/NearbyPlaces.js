@@ -3,20 +3,36 @@ import Background from '../components/Background'
 import Logo from '../components/Logo'
 import BackButton from '../components/BackButton'
 import PreferencesButton from '../components/PreferenceButton';
-import { GoBackButtonStyles } from '../components/BackButton';
-import { PreferenceButtonStyles} from '../components/PreferenceButton';
 import { View, Text, Button, Alert, Linking, TouchableOpacity, Dimensions } from 'react-native';
 import MapView, { Marker, Callout, PROVIDER_GOOGLE } from 'react-native-maps';
 import Modal from 'react-native-modal'; 
 import * as Location from 'expo-location';
 import axios from 'axios';
-import { GOOGLE_MAPS_API_KEY } from "@env";
 import { LightGoogleMapsStyle } from '../core/styles';
-import { theme } from '../core/theme';
 import { getStatusBarHeight } from 'react-native-status-bar-height';
 import { PanGestureHandler, State, ScrollView } from 'react-native-gesture-handler';
-import TextInput from '../components/TextInput';
 import BottomSheet from 'react-native-gesture-bottom-sheet';
+import { interests } from '../components/InterestSelection';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+// assign color based on sub-interest
+const subInterestColorMap = interests.reduce((map, interest) => {
+  interest.subInterests.forEach(subInterest => {
+    map[subInterest.toLowerCase()] = interest.color;
+  });
+  return map;
+}, {});
+
+const getPinColor = (preference) => {
+  const subInterests = preference.toLowerCase().split(', ');
+  for (const subInterest of subInterests) {
+    const color = subInterestColorMap[subInterest];
+    if (color) {
+      return color;
+    }
+  }
+  return 'blue'; // default color if no match is found
+};
 
 export default class NearbyPlaces extends Component{
 
@@ -26,19 +42,54 @@ export default class NearbyPlaces extends Component{
     this.state = {
       region: null,
       places: [],
-      etaFilter: 3000,
+      etaFilter: 3,
       isModalVisible: false,
       userInput: '',
       selectedPlace: null,
+      selectedSubInterests: [],
+      isLoading: false,
     };
     // Bind the method to the class instance
     this.handleMarkerPress = this.handleMarkerPress.bind(this);
   }
 
   componentDidMount() {
+    this._unsubscribe = this.props.navigation.addListener('focus', () => {
+      console.log('NearbyPlaces.js: focus event')
+      this.loadSettings();
+      
+    });
     this.getLocationAsync();
   }
+  
+  componentWillUnmount() {
+    this._unsubscribe();
+  }
 
+  componentDidUpdate(prevProps, prevState) {
+    if (this.state.region && (this.state.selectedSubInterests !== prevState.selectedSubInterests ||
+        this.state.etaFilter !== prevState.etaFilter)) {
+      this.setNearbyPlaces(this.state.region.latitude, this.state.region.longitude);
+    }
+  }
+
+  loadSettings = async () => {
+    try {
+      const savedSubInterests = await AsyncStorage.getItem('selectedSubInterests');
+      if (savedSubInterests !== null) {
+        print('savedSubInterests: ', savedSubInterests)
+        this.setState({ selectedSubInterests: JSON.parse(savedSubInterests) });
+      }
+      const savedDistance = await AsyncStorage.getItem('preferredDistance');
+      if (savedDistance !== null && savedDistance !== '' && parseInt(savedDistance) > 0) {
+        // use the estimate of 10 minutes ETA for 3 km
+        const eta = parseInt(savedDistance) * 3 / 10;
+        this.setState({ etaFilter: eta });
+      }
+    } catch (e) {
+      console.log('Failed to load the settings: ', e);
+    }
+  }
 
   handleMarkerPress(place) {
     this.setState({ selectedPlace: place }, () => {
@@ -56,8 +107,8 @@ export default class NearbyPlaces extends Component{
         return;
       }
       const location = await Location.getCurrentPositionAsync({});
-      // const { latitude, longitude } = location.coords;
-      const { latitude, longitude } = { latitude: 33.779751, longitude: -84.390022 };
+      const { latitude, longitude } = location.coords;
+      // const { latitude, longitude } = { latitude: 33.779751, longitude: -84.390022 };
       this.setNearbyPlaces(latitude, longitude);
       this.setState({
         region: {
@@ -93,18 +144,26 @@ export default class NearbyPlaces extends Component{
   
 
   getNearbyPlaces = async (latitude, longitude) => {
+    this.setState({ isLoading: true });
     try {
-      // try a new approach
-      let radius = 3;
-      // Replace 'localhost' with your machine's IP address
-      const url = `https://pat266.pythonanywhere.com/recommended_places?latitude=${latitude}&longitude=${longitude}&radius=${radius}`;
-      const response = await axios.get(url);
+      let selectedSubInterests = this.state.selectedSubInterests
+      console.log("Current selected sub interests: " + selectedSubInterests + " and etaFilter: " + this.state.etaFilter);
 
-      // console.log(response.data)
+      let url = `https://pat266.pythonanywhere.com/recommended_places_open_trip?latitude=${latitude}&longitude=${longitude}&radius=${this.state.etaFilter}`;
+      if (selectedSubInterests && selectedSubInterests.length > 0) {
+        selectedSubInterests.forEach(interest => {
+          url += `&preferences=${encodeURIComponent(interest)}`;
+        });
+      }
+      console.log('URL: ', url);
+      const response = await axios.get(url, { timeout: 90000 }); // 90000 milliseconds = 1.5 minutes
+      this.setState({ isLoading: false });
+      console.log("Got the response from the server: " + response.data)
 
       // Assuming the server returns a list of dictionaries
       return response.data;
     } catch (error) {
+      this.setState({ isLoading: false });
       Alert.alert('Error', 'Failed to get nearby places. Please try again.');
       console.error('getNearbyPlaces: ', error);
     }
@@ -135,12 +194,19 @@ export default class NearbyPlaces extends Component{
     const { region, places, isModalVisible } = this.state;
     // max height of the bottom sheet
     const maxHeight = Dimensions.get('window').height * 0.7;
-    
+
     if (!region) {
       return (
         <Background>
           <Logo />
           <Text>Getting Reccomendations ...</Text>
+        </Background>
+      );
+    } else if (this.state.isLoading) {
+      return (
+        <Background>
+          <Logo />
+          <Text>Loading...</Text>
         </Background>
       );
     }
@@ -168,7 +234,7 @@ export default class NearbyPlaces extends Component{
           onPress={() => this.setState({ selectedPlace: null })}
         >
           <Marker coordinate={region} />
-          {places.filter(place => !place.title.includes('Tech Square')).map(place => (
+          {places.map(place => (
             <MemoizedMarker key={place.id} place={place} handleMarkerPress={this.handleMarkerPress} />
           ))}
         </MapView>
@@ -180,22 +246,14 @@ export default class NearbyPlaces extends Component{
             draggable={false}
           >
             <ScrollView contentContainerStyle={{ padding: 20 }}>
-              <Text style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 10 }}>{this.state.selectedPlace.title}</Text>
+              <Text style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 10 }}>{this.state.selectedPlace.name}</Text>
               <Text style={{ fontSize: 16, color: 'gray', marginBottom: 5 }}>
                 <Text style={{ color: 'black', fontWeight: 'bold' }}>Type: </Text>
-                {this.state.selectedPlace.preference}
-              </Text>
-              <Text style={{ fontSize: 16, color: 'gray', marginBottom: 5 }}>
-                <Text style={{ color: 'black', fontWeight: 'bold' }}>Address: </Text>
-                {this.state.selectedPlace.address}
-              </Text>
-              <Text style={{ fontSize: 16, color: 'gray', marginBottom: 5 }}>
-                <Text style={{ color: 'black', fontWeight: 'bold' }}>Phone: </Text>
-                {this.state.selectedPlace.phone}
+                {this.state.selectedPlace.kinds}
               </Text>
               <Text style={{ fontSize: 16, color: 'black', marginTop: 10, marginBottom: 5, lineHeight: 24 }}>
                 <Text style={{ color: 'black', fontWeight: 'bold' }}>Description: </Text>
-                {this.state.selectedPlace.generated_info}
+                {this.state.selectedPlace.info}
               </Text>
             </ScrollView>
           </BottomSheet>
@@ -211,34 +269,15 @@ export default class NearbyPlaces extends Component{
 
 const MemoizedMarker = React.memo(function MemoizedMarker({ place, handleMarkerPress }) {
   const {
-    title, // The name of the place
-    address,
+    id,
+    name,
+    info,
     latitude,
     longitude,
-    phone,
-    preference, // types of places
+    kinds, // types of places
   } = place;
-
-  const preferenceColors = {
-    'sports': 'purple',
-    'art and culture': 'orange',
-    'museum and history': 'black',
-    'food and dining': 'pink',
-    'nature and outdoors': 'brown',
-    'music': 'teal',
-    'technology': 'indigo',
-    'shopping': 'cyan',
-    'movies and entertainment': 'green'
-  };
   
-  let pinColor = 'blue'; // default color
-  // change the color based on the preference
-  for (let pref in preferenceColors) {
-    if (preference.includes(pref)) {
-      pinColor = preferenceColors[pref];
-      break;
-    }
-  }
+  let pinColor = getPinColor(kinds);
 
   return (
     <Marker

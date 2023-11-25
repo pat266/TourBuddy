@@ -3,43 +3,52 @@ import { View, Text, TouchableOpacity, StyleSheet, TextInput, ScrollView } from 
 import Slider from '@react-native-community/slider';
 import Checkbox from 'expo-checkbox';
 
+// Define an array of interests with sub-interests
+export const interests = [
+  {
+    name: 'Sports',
+    color: 'purple',
+    subInterests: ['Football', 'Basketball', 'Tennis', 'Golf', 'Skiing', 'Pools'],
+  },
+  {
+    name: 'Art and Culture',
+    color: 'orange',
+    subInterests: ['Museums', 'Painting', 'Sculpture', 'Gallery'],
+  },
+  {
+    name: 'Historical',
+    color: 'teal',
+    subInterests: ['Historic Districts', 'Battlefields', 'Fortifications', 'Monuments and Memorials', 'Archaeology'],
+  },
+  {
+    name: 'Food and Dining',
+    color: 'pink',
+    subInterests: ['Fine Dining', 'Street Food', 'Fast food', 'Pubs', 'Bars', 'Restaurants'],
+  },
+  {
+    name: 'Nature and Outdoors',
+    color: 'brown',
+    subInterests: ['Hiking', 'Climbing', 'Camping', 'Nature Reserves', 'Beaches'],
+  },
+  {
+    name: 'Music',
+    color: 'black',
+    subInterests: ['Rock', 'Jazz', 'Classical', 'Hip-Hop'],
+  },
+  {
+    name: 'Shops',
+    color: 'indigo',
+    subInterests: ['Supermarkets', 'Malls', 'Electronics', 'Bakeries', 'Local Markets'],
+  },
+  {
+    name: 'Movies and Entertainment',
+    color: 'green',
+    subInterests: ['Action', 'Comedy', 'Drama', 'Science Fiction'],
+  },
+];
+
+
 const InterestSelection = ({ selectedInterests, onInterestChange, preferredDistance, onDistanceChange, preferredCost, onCostChange }) => {
-  // Define an array of interests
-   // Define an array of interests with sub-interests
-   const interests = [
-    {
-      name: 'Sports',
-      subInterests: ['Football', 'Basketball', 'Tennis', 'Golf', 'Skiing', 'Pools'],
-    },
-    {
-      name: 'Art and Culture',
-      subInterests: ['Museums', 'Painting', 'Sculpture', 'Gallery'],
-    },
-    {
-      name: 'Historical',
-      subInterests: ['Historic Districts', 'Battlefields', 'Fortifications', 'Monuments and Memorials', 'Archaeology'],
-    },
-    {
-      name: 'Food and Dining',
-      subInterests: ['Fine Dining', 'Street Food', 'Fast food', 'Pubs', 'Bars', 'Restaurants'],
-    },
-    {
-      name: 'Nature and Outdoors',
-      subInterests: ['Hiking', 'Climbing', 'Camping', 'Nature Reserves', 'Beaches'],
-    },
-    {
-      name: 'Music',
-      subInterests: ['Rock', 'Jazz', 'Classical', 'Hip-Hop'],
-    },
-    {
-      name: 'Shops',
-      subInterests: ['Supermarkets', 'Malls', 'Electronics', 'Bakeries', 'Local Markets'],
-    },
-    {
-      name: 'Movies and Entertainment',
-      subInterests: ['Action', 'Comedy', 'Drama', 'Science Fiction'],
-    },
-  ];
 
   const [preferredPrice, setpreferredPrice] = useState(3);
 
@@ -214,3 +223,7 @@ const styles = StyleSheet.create({
 
 
 export default InterestSelection;
+
+// Define an array of main interests for filtering
+export const mainInterests = interests.map(interest => interest.name);
+
