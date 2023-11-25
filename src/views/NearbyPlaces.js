@@ -47,6 +47,7 @@ export default class NearbyPlaces extends Component{
       userInput: '',
       selectedPlace: null,
       selectedSubInterests: [],
+      isLoading: false,
     };
     // Bind the method to the class instance
     this.handleMarkerPress = this.handleMarkerPress.bind(this);
@@ -143,6 +144,7 @@ export default class NearbyPlaces extends Component{
   
 
   getNearbyPlaces = async (latitude, longitude) => {
+    this.setState({ isLoading: true });
     try {
       let selectedSubInterests = this.state.selectedSubInterests
       console.log("Current selected sub interests: " + selectedSubInterests + " and etaFilter: " + this.state.etaFilter);
@@ -154,13 +156,14 @@ export default class NearbyPlaces extends Component{
         });
       }
       console.log('URL: ', url);
-      const response = await axios.get(url);
-
-      console.log("Got the response from the server.")
+      const response = await axios.get(url, { timeout: 90000 }); // 90000 milliseconds = 1.5 minutes
+      this.setState({ isLoading: false });
+      console.log("Got the response from the server: " + response.data)
 
       // Assuming the server returns a list of dictionaries
       return response.data;
     } catch (error) {
+      this.setState({ isLoading: false });
       Alert.alert('Error', 'Failed to get nearby places. Please try again.');
       console.error('getNearbyPlaces: ', error);
     }
@@ -197,6 +200,13 @@ export default class NearbyPlaces extends Component{
         <Background>
           <Logo />
           <Text>Getting Reccomendations ...</Text>
+        </Background>
+      );
+    } else if (this.state.isLoading) {
+      return (
+        <Background>
+          <Logo />
+          <Text>Loading...</Text>
         </Background>
       );
     }
