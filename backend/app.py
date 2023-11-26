@@ -3,7 +3,7 @@ from places_processor import PlacesProcessor
 from scrape_and_summarize import ScrapeAndSummarize
 from opentripmap_categories import CategoryChecker
 from weatherapi import WeatherAPIClient
-from recommended_places_manager import RecommendedPlacesManager
+from app_variables_manager import AppVariablesManager
 from config import Config
 from openai import OpenAI
 import time
@@ -15,7 +15,7 @@ scrapeAndSummarize = ScrapeAndSummarize()
 weatherClient = WeatherAPIClient()
 
 # in memory variable to store current recommended place
-current_recommended_places = RecommendedPlacesManager()
+current_recommended_places = AppVariablesManager()
 
 def clean_preference(preference):
     return preference.lower().replace(" ", "_")
@@ -79,10 +79,15 @@ def get_advice():
 
     tempRecommendation = current_recommended_places.get_recommended_places()
     if tempRecommendation is None:
-        return jsonify({'advice': 'There are currently no recommended places. Please restart the app.'})
+        if current_recommended_places.get_advice() is not None and len(current_recommended_places.get_advice()) > 0:
+            return jsonify(current_recommended_places.get_advice())
+        else:
+            return jsonify('There are currently no recommended places. Please restart the app.')
 
     weatherResponse = weatherClient.get_current_weather(latitude, longitude)
     advice = places_processor.get_advice(tempRecommendation, weatherResponse)
+
+    current_recommended_places.set_advice(advice)
 
     return jsonify(advice)
 
