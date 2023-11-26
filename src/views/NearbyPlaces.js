@@ -3,6 +3,7 @@ import Background from '../components/Background'
 import Logo from '../components/Logo'
 import BackButton from '../components/BackButton'
 import PreferencesButton from '../components/PreferenceButton';
+import AdviceButton from '../components/AdviceButton';
 import { View, Text, Button, Alert, Linking, TouchableOpacity, Dimensions } from 'react-native';
 import MapView, { Marker, Callout, PROVIDER_GOOGLE } from 'react-native-maps';
 import Modal from 'react-native-modal'; 
@@ -48,9 +49,11 @@ export default class NearbyPlaces extends Component{
       selectedPlace: null,
       selectedSubInterests: [],
       isLoading: false,
+      showAdvice: false,
     };
     // Bind the method to the class instance
     this.handleMarkerPress = this.handleMarkerPress.bind(this);
+    this.handleAdvicePress = this.handleAdvicePress.bind(this);
   }
 
   componentDidMount() {
@@ -97,7 +100,11 @@ export default class NearbyPlaces extends Component{
     });
   }
   
-
+  handleAdvicePress() {
+    this.setState({ showAdvice: true }, () => {
+      this.bottomSheetRef.current.show();
+    });
+  }
 
   getLocationAsync = async () => {
     try {
@@ -191,7 +198,7 @@ export default class NearbyPlaces extends Component{
   
 
   render() {
-    const { region, places, isModalVisible } = this.state;
+    const { region, places, showAdvice, selectedPlace } = this.state;
     // max height of the bottom sheet
     const maxHeight = Dimensions.get('window').height * 0.7;
 
@@ -199,14 +206,14 @@ export default class NearbyPlaces extends Component{
       return (
         <Background>
           <Logo />
-          <Text>Getting Reccomendations ...</Text>
+          <Text>Loading Map</Text>
         </Background>
       );
     } else if (this.state.isLoading) {
       return (
         <Background>
           <Logo />
-          <Text>Loading...</Text>
+          <Text>Getting Reccomendations ...</Text>
         </Background>
       );
     }
@@ -221,6 +228,7 @@ export default class NearbyPlaces extends Component{
         >
           <BackButton goBack={this.goBack} />
           <PreferencesButton onPress={this.handlePreferencesPress} />
+          <AdviceButton onPress={this.handleAdvicePress} />
         </View>
   
         <MapView
@@ -239,28 +247,36 @@ export default class NearbyPlaces extends Component{
           ))}
         </MapView>
 
-        {this.state.selectedPlace && (
+        {(selectedPlace || showAdvice) && (
           <BottomSheet  
             ref={this.bottomSheetRef} 
             height={maxHeight}
             draggable={false}
           >
             <ScrollView contentContainerStyle={{ padding: 20 }}>
-              <Text style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 10 }}>{this.state.selectedPlace.name}</Text>
-              <Text style={{ fontSize: 16, color: 'gray', marginBottom: 5 }}>
-                <Text style={{ color: 'black', fontWeight: 'bold' }}>Type: </Text>
-                {this.state.selectedPlace.kinds}
-              </Text>
-              <Text style={{ fontSize: 16, color: 'black', marginTop: 10, marginBottom: 5, lineHeight: 24 }}>
-                <Text style={{ color: 'black', fontWeight: 'bold' }}>Description: </Text>
-                {this.state.selectedPlace.info}
-              </Text>
+              {showAdvice ? (
+                <Text style={{ fontSize: 20, fontWeight: 'bold' }}>
+                  Hello World
+                </Text>
+              ) : selectedPlace && (
+                <>
+                  <Text style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 10 }}>{selectedPlace.name}</Text>
+                  <Text style={{ fontSize: 16, color: 'gray', marginBottom: 5 }}>
+                    <Text style={{ color: 'black', fontWeight: 'bold' }}>Type: </Text>
+                    {selectedPlace.kinds}
+                  </Text>
+                  <Text style={{ fontSize: 16, color: 'black', marginTop: 10, marginBottom: 5, lineHeight: 24 }}>
+                    <Text style={{ color: 'black', fontWeight: 'bold' }}>Description: </Text>
+                    {selectedPlace.info}
+                  </Text>
+                </>
+              )}
+
+              
+
             </ScrollView>
           </BottomSheet>
         )}
-
-
-
 
       </View>
     );
