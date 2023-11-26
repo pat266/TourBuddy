@@ -164,3 +164,22 @@ class PlacesProcessor:
                 value = ', '.join(value)
             stringified_data.append(f"{key.replace('_', ' ').capitalize()}: {value}")
         return "\n".join(stringified_data)
+
+    def get_advice(self, current_recommended_places, weatherResponse):
+        prompt = f"""
+        Based on the weather response and the information of the recommended places, give detailed advice to the vistors of at most 3 places they should visit and provide explanation. Provide the reasonings with the current weather.
+        Label them appropriately, and go to the next line for each detail.
+        This is the weather response of the area from weatherapi.com: {weatherResponse}.
+        This is the information of the recommended places: {current_recommended_places}.
+        """
+        response = self.client.chat.completions.create(
+            model="gpt-3.5-turbo-1106",
+            temperature=0.1,
+            messages=
+            [
+                {"role": "system", "content": "You are a helpful assistant."},
+                {"role": "user", "content": prompt},
+            ],
+        )
+        info = response.choices[0].message.content.strip()
+        return info
