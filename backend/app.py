@@ -7,7 +7,6 @@ from app_variables_manager import AppVariablesManager
 from config import Config
 from openai import OpenAI
 import time
-import threading
 
 
 app = Flask(__name__)
@@ -55,11 +54,11 @@ def get_recommended_places_open_trip():
     current_recommended_places.set_recommended_places(updated_recommended_places)
     execution_time = time.time() - start_time
     print(f"The get_recommended_places_open_trip API took {execution_time} seconds to execute.")
-
-    # Create a new thread that will execute the retrieve_advice() function
-    advice_thread = threading.Thread(target=retrieve_advice, args=(latitude, longitude))
-    # Start the thread
-    advice_thread.start()
+    
+    recommendation = current_recommended_places.get_recommended_places()
+    weatherResponse = weatherClient.get_current_weather(latitude, longitude)
+    advice = places_processor.get_advice(recommendation, weatherResponse)
+    current_recommended_places.set_advice(advice)
 
     return jsonify(updated_recommended_places)
 
@@ -86,11 +85,6 @@ def get_advice():
     if advice is None:
         return jsonify('There is currently no advice. Please restart the app.')
     return jsonify(advice)
-
-def retrieve_advice(latitude, longitude):
-    weatherResponse = weatherClient.get_current_weather(latitude, longitude)
-    advice = places_processor.get_advice(current_recommended_places.get_recommended_places(), weatherResponse)
-    current_recommended_places.set_advice(advice)
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

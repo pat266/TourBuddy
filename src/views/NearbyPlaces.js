@@ -173,7 +173,7 @@ export default class NearbyPlaces extends Component{
       console.log('URL: ', url);
       const response = await axios.get(url, { timeout: 90000 }); // 90000 milliseconds = 1.5 minutes
       this.setState({ isLoading: false });
-      console.log("Got the response from the server: " + response.data)
+      // console.log("Got the response from the server: " + response.data)
 
       // Assuming the server returns a list of dictionaries
       return response.data;
