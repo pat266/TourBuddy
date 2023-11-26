@@ -7,6 +7,8 @@ from app_variables_manager import AppVariablesManager
 from config import Config
 from openai import OpenAI
 import time
+import threading
+
 
 app = Flask(__name__)
 client = OpenAI(api_key=Config.OPENAI_API_KEY)
@@ -38,6 +40,7 @@ def get_recommended_places():
 @app.route('/recommended_places_open_trip', methods=['GET'])
 def get_recommended_places_open_trip():
     current_recommended_places.clear_recommended_places()
+    current_recommended_places.clear_advice()
     start_time = time.time()
     latitude = request.args.get('latitude', default="33.771030", type=str)
     longitude = request.args.get('longitude', default="-84.391090", type=str)
@@ -52,6 +55,11 @@ def get_recommended_places_open_trip():
     current_recommended_places.set_recommended_places(updated_recommended_places)
     execution_time = time.time() - start_time
     print(f"The get_recommended_places_open_trip API took {execution_time} seconds to execute.")
+
+    # Create a new thread that will execute the retrieve_advice() function
+    advice_thread = threading.Thread(target=retrieve_advice, args=(latitude, longitude))
+    # Start the thread
+    advice_thread.start()
 
     return jsonify(updated_recommended_places)
 
@@ -74,22 +82,15 @@ def search():
 
 @app.route('/get_advice', methods=['GET'])
 def get_advice():
-    latitude = request.args.get('latitude', default="33.771030", type=str)
-    longitude = request.args.get('longitude', default="-84.391090", type=str)
-
-    tempRecommendation = current_recommended_places.get_recommended_places()
-    if tempRecommendation is None:
-        if current_recommended_places.get_advice() is not None and len(current_recommended_places.get_advice()) > 0:
-            return jsonify(current_recommended_places.get_advice())
-        else:
-            return jsonify('There are currently no recommended places. Please restart the app.')
-
-    weatherResponse = weatherClient.get_current_weather(latitude, longitude)
-    advice = places_processor.get_advice(tempRecommendation, weatherResponse)
-
-    current_recommended_places.set_advice(advice)
-
+    advice = current_recommended_places.get_advice()
+    if advice is None:
+        return jsonify('There is currently no advice. Please restart the app.')
     return jsonify(advice)
+
+def retrieve_advice(latitude, longitude):
+    weatherResponse = weatherClient.get_current_weather(latitude, longitude)
+    advice = places_processor.get_advice(current_recommended_places.get_recommended_places(), weatherResponse)
+    current_recommended_places.set_advice(advice)
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)

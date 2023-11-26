@@ -49,6 +49,7 @@ export default class NearbyPlaces extends Component{
       selectedPlace: null,
       selectedSubInterests: [],
       isLoading: false,
+      adviceText: '',
       showAdvice: false,
     };
     // Bind the method to the class instance
@@ -95,15 +96,22 @@ export default class NearbyPlaces extends Component{
   }
 
   handleMarkerPress(place) {
-    this.setState({ selectedPlace: place }, () => {
+    this.setState({ selectedPlace: place, showAdvice: false }, () => {
       this.bottomSheetRef.current.show();
     });
   }
   
-  handleAdvicePress() {
-    this.setState({ showAdvice: true }, () => {
-      this.bottomSheetRef.current.show();
-    });
+  async handleAdvicePress() {
+    try {
+      const response = await axios.get('https://pat266.pythonanywhere.com/get_advice');
+      const responseData = response.data;
+      this.setState({ adviceText: responseData, showAdvice: true }, () => {
+        this.bottomSheetRef.current.show();
+      });
+    } catch (error) {
+      console.error('Error fetching advice:', error);
+    }
+    
   }
 
   getLocationAsync = async () => {
@@ -198,7 +206,7 @@ export default class NearbyPlaces extends Component{
   
 
   render() {
-    const { region, places, showAdvice, selectedPlace } = this.state;
+    const { region, places, showAdvice, selectedPlace, adviceText } = this.state;
     // max height of the bottom sheet
     const maxHeight = Dimensions.get('window').height * 0.7;
 
@@ -239,7 +247,7 @@ export default class NearbyPlaces extends Component{
           cacheEnabled={true}
           loadingEnabled={true}
           liteMode={true}
-          onPress={() => this.setState({ selectedPlace: null })}
+          onPress={() => this.setState({ selectedPlace: null, showAdvice: false })}
         >
           <Marker coordinate={region} />
           {places.map(place => (
@@ -255,8 +263,8 @@ export default class NearbyPlaces extends Component{
           >
             <ScrollView contentContainerStyle={{ padding: 20 }}>
               {showAdvice ? (
-                <Text style={{ fontSize: 20, fontWeight: 'bold' }}>
-                  Hello World
+                <Text style={{ fontSize: 16 }}>
+                  {adviceText}
                 </Text>
               ) : selectedPlace && (
                 <>
@@ -271,9 +279,6 @@ export default class NearbyPlaces extends Component{
                   </Text>
                 </>
               )}
-
-              
-
             </ScrollView>
           </BottomSheet>
         )}
