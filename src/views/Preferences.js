@@ -8,6 +8,7 @@ import { theme } from '../core/theme';
 import InterestSelection from '../components/InterestSelection';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { mainInterests } from '../components/InterestSelection';
+import { trackEvent } from "@aptabase/react-native";
 
 
 export default function InterestsScreen({ navigation }) {
@@ -32,11 +33,26 @@ export default function InterestsScreen({ navigation }) {
 
   const savePreferences = async () => {
     try {
+
+      // Stringify arrays to send actual values
+      const selectedInterestsStringified = JSON.stringify(selectedInterests);
+      const selectedSubInterestsStringified = JSON.stringify(selectedSubInterests);
+
+
       console.log('Saving preferences in Preferences.js: ' + selectedSubInterests);
       await AsyncStorage.setItem('selectedInterests', JSON.stringify(selectedInterests));
       await AsyncStorage.setItem('selectedSubInterests', JSON.stringify(selectedSubInterests));
       await AsyncStorage.setItem('preferredDistance', preferredDistance);
       await AsyncStorage.setItem('preferredCost', preferredCost);
+
+      // Log analytics event when preferences are saved
+      trackEvent('preferences_saved', {
+        selectedInterests: selectedInterestsStringified,
+        selectedSubInterests: selectedSubInterestsStringified,
+        preferredDistance,
+        preferredCost,
+      });
+
     } catch (e) {
       console.log(e);
     }

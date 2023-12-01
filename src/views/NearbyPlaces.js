@@ -4,14 +4,13 @@ import Logo from '../components/Logo'
 import BackButton from '../components/BackButton'
 import PreferencesButton from '../components/PreferenceButton';
 import AdviceButton from '../components/AdviceButton';
-import { View, Text, Button, Alert, Linking, TouchableOpacity, Dimensions } from 'react-native';
-import MapView, { Marker, Callout, PROVIDER_GOOGLE } from 'react-native-maps';
-import Modal from 'react-native-modal'; 
+import { View, Text, Alert, Dimensions } from 'react-native';
+import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
 import * as Location from 'expo-location';
 import axios from 'axios';
 import { LightGoogleMapsStyle } from '../core/styles';
 import { getStatusBarHeight } from 'react-native-status-bar-height';
-import { PanGestureHandler, State, ScrollView } from 'react-native-gesture-handler';
+import {ScrollView } from 'react-native-gesture-handler';
 import BottomSheet from 'react-native-gesture-bottom-sheet';
 import { interests } from '../components/InterestSelection';
 import AsyncStorage from '@react-native-async-storage/async-storage';

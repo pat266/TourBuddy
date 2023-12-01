@@ -13,6 +13,11 @@ import {
   Preferences,
 } from './src/views'
 
+import Aptabase from "@aptabase/react-native";
+
+Aptabase.init("A-US-5472510791");  // Aptabase Analytics project iD
+
+
 
 const Stack = createStackNavigator()
 
