@@ -14,6 +14,9 @@ import {ScrollView } from 'react-native-gesture-handler';
 import BottomSheet from 'react-native-gesture-bottom-sheet';
 import { interests } from '../components/InterestSelection';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { trackEvent } from '@aptabase/react-native';
+import { auth } from '../../firebaseConfig';
+import { CurrentRenderContext } from '@react-navigation/native';
 
 // assign color based on sub-interest
 const subInterestColorMap = interests.reduce((map, interest) => {
@@ -79,8 +82,9 @@ export default class NearbyPlaces extends Component{
   loadSettings = async () => {
     try {
       const savedSubInterests = await AsyncStorage.getItem('selectedSubInterests');
+      
       if (savedSubInterests !== null) {
-        print('savedSubInterests: ', savedSubInterests)
+        console.log('savedSubInterests: ', savedSubInterests)
         this.setState({ selectedSubInterests: JSON.parse(savedSubInterests) });
       }
       const savedDistance = await AsyncStorage.getItem('preferredDistance');
@@ -96,14 +100,17 @@ export default class NearbyPlaces extends Component{
 
   handleMarkerPress(place) {
     this.setState({ selectedPlace: place, showAdvice: false }, () => {
+      trackEvent("markerInteraction", { place: this.state.selectedPlace.place });
       this.bottomSheetRef.current.show();
     });
   }
+  
   
   async handleAdvicePress() {
     try {
       const response = await axios.get('https://pat266.pythonanywhere.com/get_advice');
       const responseData = response.data;
+      trackEvent("advice_pressed", {responseData: responseData});
       this.setState({ adviceText: responseData, showAdvice: true }, () => {
         this.bottomSheetRef.current.show();
       });
@@ -147,6 +154,7 @@ export default class NearbyPlaces extends Component{
     this.setState({ userInput: '' });
   
     console.log('User input:', userInput);
+    trackEvent("chatCalled", {userInput: userInput})
   
     const results = "This is the result from askChat function.";
     return results;
@@ -174,6 +182,15 @@ export default class NearbyPlaces extends Component{
       this.setState({ isLoading: false });
       // console.log("Got the response from the server: " + response.data)
 
+
+      //console.log("Raw response data:", response.data);
+      const stringifiedData = JSON.stringify(response.data);
+      //console.log("Stringified response data:", stringifiedData);
+
+
+
+      trackEvent("NearbyP_Data", {response: JSON.stringify(response.data)})
+
       // Assuming the server returns a list of dictionaries
       return response.data;
     } catch (error) {
@@ -190,10 +207,24 @@ export default class NearbyPlaces extends Component{
   }
 
 
+  logOut = () => {
+    const curr = auth.currentUser
+    auth.signOut(auth).then(() => {
+      // Sign-out successful.
+      this.props.navigation.navigate('Login')
+      trackEvent("Logout", {UID: curr.uid})
+      Alert.alert("Logged Out")
+    }).catch((error) => {
+      // An error happened.
+      Alert.alert(error)
+    });
+  }
+
   goBack = () => {
     if (this.props.navigation.canGoBack()) {
-      this.props.navigation.goBack();
+      this.logOut()
     } else {
+      Alert.alert("Cannot sign out")
       this.props.navigation.navigate('HomeScreen');
     }
   }
@@ -202,6 +233,7 @@ export default class NearbyPlaces extends Component{
     this.props.navigation.navigate('Preferences');
   }
 
+  
   
 
   render() {
@@ -236,6 +268,7 @@ export default class NearbyPlaces extends Component{
           <BackButton goBack={this.goBack} />
           <PreferencesButton onPress={this.handlePreferencesPress} />
           <AdviceButton onPress={this.handleAdvicePress} />
+          
         </View>
   
         <MapView

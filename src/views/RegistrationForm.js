@@ -12,6 +12,9 @@ import { emailValidator } from '../helpers/emailValidator'
 import { passwordValidator } from '../helpers/passwordValidator'
 import { nameValidator } from '../helpers/nameValidator'
 import { RegistrationFormStyles } from '../core/styles'
+import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import {app, auth} from '../../firebaseConfig';
 
 export default function RegistrationForm({ navigation }) {
   const [name, setName] = useState({ value: '', error: '' })
@@ -22,12 +25,33 @@ export default function RegistrationForm({ navigation }) {
     const nameError = nameValidator(name.value)
     const emailError = emailValidator(email.value)
     const passwordError = passwordValidator(password.value)
+
     if (emailError || passwordError || nameError) {
       setName({ ...name, error: nameError })
       setEmail({ ...email, error: emailError })
       setPassword({ ...password, error: passwordError })
       return
     }
+
+
+    //const auth = getAuth()
+    console.log('Email:', email.value);
+    createUserWithEmailAndPassword(auth, email.value.trim(), password.value)
+      .then((userCredential) => {
+        // Signed up 
+        const user = userCredential.user;
+        // ...
+      })
+      .catch((error) => {
+        const errorCode = error.code;
+        const errorMessage = error.message;
+        console.log(errorCode, errorMessage)
+        alert("Failed To Create Account.\n Ensure Proper Internet Connection\nTry again Later")
+      });
+
+
+
+    //switch pages
     navigation.reset({
       index: 0,
       routes: [{ name: 'Interests' }],
