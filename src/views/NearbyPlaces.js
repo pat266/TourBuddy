@@ -81,13 +81,17 @@ export default class NearbyPlaces extends Component{
 
   loadSettings = async () => {
     try {
+
       const savedSubInterests = await AsyncStorage.getItem('selectedSubInterests');
-      
+      //const savedSubInterests = //get subinterests from firebase preferences
+
+
       if (savedSubInterests !== null) {
         console.log('savedSubInterests: ', savedSubInterests)
         this.setState({ selectedSubInterests: JSON.parse(savedSubInterests) });
       }
       const savedDistance = await AsyncStorage.getItem('preferredDistance');
+      //const savedDistance = //get distance from firebase preferences
       if (savedDistance !== null && savedDistance !== '' && parseInt(savedDistance) > 0) {
         // use the estimate of 10 minutes ETA for 3 km
         const eta = parseInt(savedDistance) * 3 / 10;

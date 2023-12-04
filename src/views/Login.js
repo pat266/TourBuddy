@@ -13,7 +13,8 @@ import { getAnalytics, logEvent, setUserProperties } from 'firebase/analytics';
 import {app, auth} from '../../firebaseConfig';
 import { trackEvent } from "@aptabase/react-native";
 import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
-import AsyncStorage from '@react-native-async-storage/async-storage';
+//import { getDatabase, ref, get } from 'firebase/database';
+//import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 export default function LoginScreen({ navigation }) {
