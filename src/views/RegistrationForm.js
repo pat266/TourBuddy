@@ -7,14 +7,14 @@ import Header from '../components/Header'
 import Button from '../components/Button'
 import TextInput from '../components/TextInput'
 import BackButton from '../components/BackButton'
-import { theme } from '../core/theme'
+//import { theme } from '../core/theme'
 import { emailValidator } from '../helpers/emailValidator'
 import { passwordValidator } from '../helpers/passwordValidator'
 import { nameValidator } from '../helpers/nameValidator'
 import { RegistrationFormStyles } from '../core/styles'
-import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import {app, auth} from '../../firebaseConfig';
+import { createUserWithEmailAndPassword } from "firebase/auth";
+//import AsyncStorage from '@react-native-async-storage/async-storage';
+import { auth} from '../../firebaseConfig';
 
 export default function RegistrationForm({ navigation }) {
   const [name, setName] = useState({ value: '', error: '' })

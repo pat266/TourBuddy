@@ -6,10 +6,10 @@ import Header from '../components/Header';
 import Button from '../components/Button';
 import { theme } from '../core/theme';
 import InterestSelection from '../components/InterestSelection';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+//import AsyncStorage from '@react-native-async-storage/async-storage';
 import { mainInterests } from '../components/InterestSelection';
-import { app, auth, database } from '../../firebaseConfig';
-import { ref, get, set } from 'firebase/database';
+import { auth, database } from '../../firebaseConfig';
+import { ref, set } from 'firebase/database';
 import { trackEvent } from "@aptabase/react-native";
 
 

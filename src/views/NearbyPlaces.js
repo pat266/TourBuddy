@@ -15,8 +15,10 @@ import BottomSheet from 'react-native-gesture-bottom-sheet';
 import { interests } from '../components/InterestSelection';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { trackEvent } from '@aptabase/react-native';
-import { auth } from '../../firebaseConfig';
 import { CurrentRenderContext } from '@react-navigation/native';
+import { auth, database } from '../../firebaseConfig';
+import { ref, get, set } from 'firebase/database';
+
 
 // assign color based on sub-interest
 const subInterestColorMap = interests.reduce((map, interest) => {
@@ -81,26 +83,40 @@ export default class NearbyPlaces extends Component{
 
   loadSettings = async () => {
     try {
-
-      const savedSubInterests = await AsyncStorage.getItem('selectedSubInterests');
-      //const savedSubInterests = //get subinterests from firebase preferences
-
-
-      if (savedSubInterests !== null) {
-        console.log('savedSubInterests: ', savedSubInterests)
-        this.setState({ selectedSubInterests: JSON.parse(savedSubInterests) });
+      // Get the current user from Firebase authentication
+      const currentUser = auth.currentUser;
+  
+      if (!currentUser) {
+        console.error('User not authenticated');
+        return;
       }
-      const savedDistance = await AsyncStorage.getItem('preferredDistance');
-      //const savedDistance = //get distance from firebase preferences
-      if (savedDistance !== null && savedDistance !== '' && parseInt(savedDistance) > 0) {
-        // use the estimate of 10 minutes ETA for 3 km
-        const eta = parseInt(savedDistance) * 3 / 10;
-        this.setState({ etaFilter: eta });
+  
+      // Reference to the preferences node in the Firebase Realtime Database
+      const preferencesRef = ref(database, `users/${currentUser.uid}/preferences`);
+  
+      // Fetch preferences from Firebase
+      const snapshot = await get(preferencesRef);
+      const preferences = snapshot.val();
+  
+      if (preferences) {
+        const { selectedSubInterests, preferredDistance } = preferences;
+  
+        if (selectedSubInterests) {
+          console.log('Saved Sub-Interests from Firebase: ', selectedSubInterests);
+          this.setState({ selectedSubInterests: JSON.parse(selectedSubInterests) });
+        }
+  
+        if (preferredDistance && preferredDistance !== '' && parseInt(preferredDistance) > 0) {
+          // Use the estimate of 10 minutes ETA for 3 km
+          const eta = parseInt(preferredDistance) * 3 / 10;
+          this.setState({ etaFilter: eta });
+        }
       }
     } catch (e) {
-      console.log('Failed to load the settings: ', e);
+      console.log('Failed to load the settings from Firebase: ', e);
     }
-  }
+  };
+  
 
   handleMarkerPress(place) {
     this.setState({ selectedPlace: place, showAdvice: false }, () => {
