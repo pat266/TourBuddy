@@ -10,8 +10,12 @@ import { emailValidator } from '../helpers/emailValidator'
 import { passwordValidator } from '../helpers/passwordValidator'
 import { loginStyles } from '../core/styles'
 import { getAnalytics, logEvent, setUserProperties } from 'firebase/analytics'; 
-import {app} from '../../firebaseConfig';
+import {app, auth} from '../../firebaseConfig';
 import { trackEvent } from "@aptabase/react-native";
+import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+//import { getDatabase, ref, get } from 'firebase/database';
+//import AsyncStorage from '@react-native-async-storage/async-storage';
+
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState({ value: '', error: '' });
@@ -19,9 +23,10 @@ export default function LoginScreen({ navigation }) {
 
 
 
-  const onLoginPressed = () => {
+  const onLoginPressed = async () => {
     const emailError = emailValidator(email.value);
     const passwordError = passwordValidator(password.value);
+
 
     if (emailError || passwordError) {
       setEmail({ ...email, error: emailError });
@@ -29,13 +34,34 @@ export default function LoginScreen({ navigation }) {
       return;
     }
 
-    trackEvent("login", { email: email.value });
+    
 
+    
+    try {
+      // Sign in with email and password
+      const userCredential = await signInWithEmailAndPassword(auth, email.value, password.value);
+  
+      // Access the user information
+      const user = userCredential.user;
+      //console.log(user);
+  
+      // Log the event to aptabase
+      trackEvent("login", { email: email.value });
+  
+      // Reset navigation stack to HomeScreen
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'HomeScreen' }],
+      });
+    } catch (error) {
+      // Handle authentication errors
+      console.error('Authentication failed:', error.message);
+      // You may want to update state to display a friendly error message
 
-    navigation.reset({
-      index: 0,
-      routes: [{ name: 'HomeScreen' }],
-    });
+      if (error.code === 'auth/wrong-password') {
+        Alert.alert('Login Failed', 'Incorrect password. Please try again.');
+      }
+    }
   };
 
   return (

@@ -157,6 +157,7 @@ const InterestSelection = ({ selectedInterests, onInterestChange, preferredDista
             minimumTrackTintColor="#f9a825"
             maximumTrackTintColor="#ccc"
           />
+
         </View>
       </ScrollView>
   );
