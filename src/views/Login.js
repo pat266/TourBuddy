@@ -9,10 +9,9 @@ import TextInput from '../components/TextInput'
 import { emailValidator } from '../helpers/emailValidator'
 import { passwordValidator } from '../helpers/passwordValidator'
 import { loginStyles } from '../core/styles'
-import { getAnalytics, logEvent, setUserProperties } from 'firebase/analytics'; 
-import {app, auth} from '../../firebaseConfig';
+import { auth} from '../../firebaseConfig';
 import { trackEvent } from "@aptabase/react-native";
-import { getAuth, signInWithEmailAndPassword } from "firebase/auth";
+import { signInWithEmailAndPassword } from "firebase/auth";
 //import { getDatabase, ref, get } from 'firebase/database';
 //import AsyncStorage from '@react-native-async-storage/async-storage';
 
