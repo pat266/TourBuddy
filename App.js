@@ -14,10 +14,15 @@ import {
 } from './src/views'
 
 import Aptabase from "@aptabase/react-native";
+import mobileAds from 'react-native-google-mobile-ads';
 
 Aptabase.init("A-US-5472510791");  // Aptabase Analytics project iD
 
-
+mobileAds()
+  .initialize()
+  .then(adapterStatuses => {
+    // Initialization complete!
+  });
 
 const Stack = createStackNavigator()
 

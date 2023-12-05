@@ -18,7 +18,7 @@ import { trackEvent } from '@aptabase/react-native';
 import { CurrentRenderContext } from '@react-navigation/native';
 import { auth, database } from '../../firebaseConfig';
 import { ref, get, set } from 'firebase/database';
-
+import { BannerAd, BannerAdSize, TestIds } from 'react-native-google-mobile-ads';
 
 // assign color based on sub-interest
 const subInterestColorMap = interests.reduce((map, interest) => {
@@ -260,6 +260,20 @@ export default class NearbyPlaces extends Component{
     const { region, places, showAdvice, selectedPlace, adviceText } = this.state;
     // max height of the bottom sheet
     const maxHeight = Dimensions.get('window').height * 0.7;
+
+    <SafeAreaView style={backgroundStyle}>
+      <BannerAd
+        size={BannerAdSize.BANNER}
+        unitId="ca-app-pub-6538309766758725/9759069390"  
+        onAdLoaded={() => {
+          console.log('Advert loaded');
+        }}
+        onAdFailedToLoad={error => {
+          console.error('Advert failed to load: ', error);
+        }}
+      />
+    </SafeAreaView>
+
 
     if (!region) {
       return (
